@@ -62,11 +62,12 @@ Workflows.start(function(ctx) {
         }
     });
 }, {
+    // ACTION #2
+
     // use an object
     // with an 'execute()' method
     // instead a function
     execute: function(ctx) {
-        // ACTION #2
         console.log('Entering ACTION #2...');
 
         // ctx.previousValue == 'TM'
