@@ -244,44 +244,37 @@ Workflows.start(function(ctx) {
 ```javascript
 var workflow = Workflows.create();
 
+// workflow events ...
 workflow.on('action.after', function(err, ctx) {
     // AFTER workflow action has been invoked
 });
-
 workflow.on('action.before', function(err, ctx) {
     // BEFORE workflow action is being invoked
 });
-
 workflow.on('action.new', function(action, newActionCount) {
     // new action added
 });
-
 workflow.on('end', function(err, workflowExecutionCount, result, endTime, value, previousValue, previousIndex) {
     // workflow has ended
 });
-
 workflow.on('reset', function() {
     // whole workflow has been resetted
 });
-
 workflow.on('reset.actions', function(oldEntries) {
     // workflow actions have been resetted
 });
-
 workflow.on('reset.actionstates', function(oldStates) {
     // states of workflow actions have
     // been resetted
 });
-
 workflow.on('reset.state', function(oldValue) {
     // state value of workflow has been resetted
 });
-
 workflow.on('start', function(workflowExecutionCount, initialValue, startTime) {
     // workflow is starting
 });
 
-// ADD ACTIONS
+// events for the execution
 workflow.then(function(ctx) {
     // ACTION #0
 
