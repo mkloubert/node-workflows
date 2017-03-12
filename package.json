@@ -18,7 +18,11 @@
     "execute",
     "execution",
     "batches",
-    "chains"
+    "chains",
+    "typescript",
+    "DefinitelyTyped",
+    "definition",
+    "files"
   ],
   "author": "mkloubert",
   "license": "MIT",

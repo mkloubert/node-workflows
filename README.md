@@ -139,8 +139,19 @@ var workflow = Workflows.create(function(ctx) {
     // ACTION #4
 
     ctx.value = 'PZ';
+
+    // if we would reache here
+    // we could finish
+    // the execution by calling...
+    ctx.finish();
 }, function(ctx) {
     // ACTION #5
+
+    // if we would reache here
+    // we could jump to a previous
+    // action by calling...
+    ctx.goBack();  // goto to 'ACTION #4'
+    ctx.goBack(2);  // goto to 'ACTION #3'
 }, function(ctx) {
     // ACTION #6
 

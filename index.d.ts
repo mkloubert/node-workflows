@@ -66,6 +66,14 @@ export interface WorkflowActionContext {
      */
     readonly globals: ValueStorage;
     /**
+     * Goes back a number of actions.
+     *
+     * @param {number} [cnt] The number of actions to go back. Default: 1
+     *
+     * @chainable
+     */
+    readonly goBack: (cnt?: number) => void;
+    /**
      * Sets the pointer for the next action.
      *
      * @param {number} newIndex The zero based index of the next action.
