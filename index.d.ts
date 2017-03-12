@@ -103,6 +103,10 @@ export interface WorkflowActionContext {
      */
     value?: any;
     /**
+     * Gets the number of workflow executions.
+     */
+    readonly workflowExecutions: number;
+    /**
      * Gets or sets the state of the underlying workflow.
      */
     workflowState: any;
@@ -127,6 +131,14 @@ export declare class Workflow {
      * Stores the permanent state values of the actions.
      */
     protected _actionStates: any[];
+    /**
+     * Stores the number of workflow execution.
+     */
+    protected _executions: number;
+    /**
+     * Gets the number of workflow executions.
+     */
+    readonly executions: number;
     /**
      * Alias for 'then'.
      */

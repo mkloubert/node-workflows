@@ -128,6 +128,10 @@ export interface WorkflowActionContext {
      */
     value?: any;
     /**
+     * Gets the number of workflow executions.
+     */
+    readonly workflowExecutions: number;
+    /**
      * Gets or sets the state of the underlying workflow.
      */
     workflowState: any;
@@ -155,6 +159,17 @@ export class Workflow {
      * Stores the permanent state values of the actions.
      */
     protected _actionStates: any[] = [];
+    /**
+     * Stores the number of workflow execution.
+     */
+    protected _executions = 0;
+
+    /**
+     * Gets the number of workflow executions.
+     */
+    public get executions(): number {
+        return this._executions;
+    }
     
     /**
      * Alias for 'then'.
@@ -172,6 +187,7 @@ export class Workflow {
     public reset(): Workflow {
         this._actions = [];
         this._actionStates = [];
+        this._executions = 0;
 
         this.resetActionStates();
         this.resetState();
@@ -224,6 +240,8 @@ export class Workflow {
 
         return new Promise<any>((resolve, reject) => {
             try {
+                ++me._executions;
+
                 let allActions = me._actions.map(x => x);
 
                 let actionStates: any[] = [];
@@ -231,7 +249,7 @@ export class Workflow {
 
                 let nextAction: () => void;
 
-                let executions = -1;
+                let executions = 0;
                 let index = -1;
                 let prevIndx: number;
                 let prevVal: any;
@@ -284,6 +302,7 @@ export class Workflow {
                             result: result,
                             state: undefined,
                             value: value,
+                            workflowExecutions: me._executions,
                             workflowState: undefined,
                         };
 
