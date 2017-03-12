@@ -277,7 +277,12 @@ export class Workflow extends events.EventEmitter {
      * @chainable
      */
     public reset(): this {
+        let oldEntries = this._actions.map(x => x);
         this._actions = [];
+
+        this.emit('reset.actions',
+                  oldEntries);
+
         this._actionStates = [];
         this._executions = 0;
 
@@ -295,9 +300,11 @@ export class Workflow extends events.EventEmitter {
      * @chainable
      */
     public resetActionStates(): this {
+        let oldStates = this._actionStates.map(x => x);
         this._actionStates = [];
 
-        this.emit('reset.actionstates');
+        this.emit('reset.actionstates',
+                  oldStates);
         
         return this;
     }
@@ -308,9 +315,11 @@ export class Workflow extends events.EventEmitter {
      * @chainable
      */
     public resetState(): this {
+        let oldValue = this._state;
         this.setState(undefined);
 
-        this.emit('reset.state');
+        this.emit('reset.state',
+                  oldValue);
 
         return this;
     }

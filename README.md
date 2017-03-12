@@ -181,6 +181,56 @@ Workflows.start(function(ctx) {
 });
 ```
 
+#### Events
+
+```
+var workflow = Workflows.create();
+
+workflow.on('action.after', function(err, ctx) {
+    // AFTER workflow action has been invoked
+});
+
+workflow.on('action.before', function(err, ctx) {
+    // BEFORE workflow action is being invoked
+});
+
+workflow.on('action.new', function(action, newActionCount) {
+    // new action added
+});
+
+workflow.on('end', function(err) {
+    // workflow has ended
+});
+
+workflow.on('reset', function() {
+    // whole workflow has been resetted
+});
+
+workflow.on('reset.actions', function(oldEntries) {
+    // workflow actions have been resetted
+});
+
+workflow.on('reset.actionstates', function(oldStates) {
+    // states of workflow actions have
+    // been resetted
+});
+
+workflow.on('reset.state', function(oldValue) {
+    // state value of workflow has been resetted
+});
+
+workflow.on('start', function() {
+    // workflow is starting
+});
+
+
+workflow.start().then(function() {
+    // success
+}).catch(function() {
+    // ERROR
+});
+```
+
 ## Documentation
 
 The full API documentation can be found [here](https://mkloubert.github.io/node-workflows/).
