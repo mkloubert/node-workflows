@@ -13,10 +13,12 @@
   "keywords": [
     "actions",
     "workflows",
-    "async",
+    "asynchronus",
     "promise",
     "execute",
-    "execution"
+    "execution",
+    "batches",
+    "chains"
   ],
   "author": "mkloubert",
   "license": "MIT",
