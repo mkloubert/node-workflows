@@ -55,6 +55,12 @@ export interface WorkflowActionContext {
      */
     readonly gotoLast: () => WorkflowAction;
     /**
+     * Sets the pointer to the next action.
+     *
+     * @chainable
+     */
+    readonly gotoNext: () => WorkflowAction;
+    /**
      * Gets the current zero based index.
      */
     readonly index: number;
