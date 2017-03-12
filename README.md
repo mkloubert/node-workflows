@@ -248,11 +248,14 @@ var workflow = Workflows.create();
 workflow.on('action.after', function(err, ctx) {
     // AFTER workflow action has been invoked
 });
-workflow.on('action.before', function(err, ctx) {
+workflow.on('action.before', function(ctx) {
     // BEFORE workflow action is being invoked
 });
 workflow.on('action.new', function(action, newActionCount) {
     // new action added
+});
+workflow.on('action.skip', function(ctx) {
+    // this action has been skipped
 });
 workflow.on('end', function(err, workflowExecutionCount, result, endTime, value, previousValue, previousIndex) {
     // workflow has ended

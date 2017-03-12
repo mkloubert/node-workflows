@@ -639,6 +639,9 @@ export class Workflow extends events.EventEmitter {
                         let doSkip = false;
                         let skipOrNot = () => {
                             if (doSkip) {
+                                me.emit('action.skip',
+                                        ctx);
+
                                 nextAction();
                             }
                             else {
