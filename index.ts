@@ -22,6 +22,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 
+import * as events from 'events';
+
 
 /**
  * A value storage.
@@ -186,7 +188,7 @@ export const GLOBALS: ValueStorage = {};
 /**
  * A workflow.
  */
-export class Workflow {
+export class Workflow extends events.EventEmitter {
     /**
      * Stores the actions of the Workflow.
      */
@@ -199,6 +201,10 @@ export class Workflow {
      * Stores the number of workflow execution.
      */
     protected _executions = 0;
+    /**
+     * Stores the current state value.
+     */
+    protected _state: any;
 
     /**
      * Gets the number of workflow executions.
@@ -216,6 +222,24 @@ export class Workflow {
     }
 
     /**
+     * Notifies for a property change.
+     * 
+     * @param {string} propertyName The name of the property.
+     * @param {any} oldValue The old value.
+     * @param {any} newValue The new value.
+     * 
+     * @chainable
+     */
+    protected notifyPropertyChanged(propertyName: string,
+                                    oldValue: any, newValue: any): Workflow {
+        this.emit('property.changed',
+                  propertyName,
+                  newValue, oldValue);
+
+        return this;
+    }
+
+    /**
      * Resets the workflow.
      * 
      * @chainable
@@ -228,6 +252,8 @@ export class Workflow {
         this.resetActionStates();
         this.resetState();
 
+        this.emit('reset');
+
         return this;
     }
 
@@ -238,6 +264,8 @@ export class Workflow {
      */
     public resetActionStates(): Workflow {
         this._actionStates = [];
+
+        this.emit('reset.actionstates');
         
         return this;
     }
@@ -248,7 +276,11 @@ export class Workflow {
      * @chainable
      */
     public resetState(): Workflow {
-        return this.setState(undefined);
+        this.setState(undefined);
+
+        this.emit('reset.state');
+
+        return this;
     }
 
     /**
@@ -276,7 +308,11 @@ export class Workflow {
 
         return new Promise<any>((resolve, reject) => {
             try {
-                ++me._executions;
+                let oldExecutionsValue = me._executions;
+                let newExecutionsValue = me._executions = oldExecutionsValue + 1;
+
+                me.notifyPropertyChanged('executions',
+                                         oldExecutionsValue, newExecutionsValue);
 
                 let entries = me._actions.map(x => x);
 
@@ -387,6 +423,9 @@ export class Workflow {
                             prevIndx = ctx.index;
                             result = ctx.result;
                             value = ctx.value;
+
+                            me.emit('action.after',
+                                    err, ctx);
                             
                             if (err) {
                                 reject(err);
@@ -395,6 +434,9 @@ export class Workflow {
                                 nextAction();
                             }
                         };
+
+                        me.emit('action.before',
+                                ctx);
 
                         if (e.action) {
                             let result = e.action
@@ -423,6 +465,9 @@ export class Workflow {
                         }
                     }
                     catch (e) {
+                        me.emit('action.after',
+                                e);
+
                         reject(e);
                     }
                 };
@@ -437,9 +482,18 @@ export class Workflow {
     }
 
     /**
-     * The state of that workflow.
+     * Gets or sets state of that workflow.
      */
-    public state: any;
+    public get state(): any {
+        return this._state;
+    }
+    public set state(newValue: any) {
+        let oldValue = this._state;
+        if (newValue !== oldValue) {
+            this.notifyPropertyChanged('state',
+                                       oldValue, newValue);
+        }
+    }
 
     /**
      * Adds a new action.
@@ -473,10 +527,13 @@ export class Workflow {
             action = <any>executor;
         }
 
-        this._actions.push({
+        let newActionCount = this._actions.push({
             action: action,
             thisArg: thisArg,
         });
+
+        this.emit('action.new',
+                  action, newActionCount);
 
         return this;
     }

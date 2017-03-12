@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import * as events from 'events';
 /**
  * A value storage.
  */
@@ -154,7 +156,7 @@ export declare const GLOBALS: ValueStorage;
 /**
  * A workflow.
  */
-export declare class Workflow {
+export declare class Workflow extends events.EventEmitter {
     /**
      * Stores the actions of the Workflow.
      */
@@ -168,6 +170,10 @@ export declare class Workflow {
      */
     protected _executions: number;
     /**
+     * Stores the current state value.
+     */
+    protected _state: any;
+    /**
      * Gets the number of workflow executions.
      */
     readonly executions: number;
@@ -175,6 +181,16 @@ export declare class Workflow {
      * Alias for 'then'.
      */
     next(executor?: WorkflowExecutorType, thisArg?: any): Workflow;
+    /**
+     * Notifies for a property change.
+     *
+     * @param {string} propertyName The name of the property.
+     * @param {any} oldValue The old value.
+     * @param {any} newValue The new value.
+     *
+     * @chainable
+     */
+    protected notifyPropertyChanged(propertyName: string, oldValue: any, newValue: any): Workflow;
     /**
      * Resets the workflow.
      *
@@ -210,7 +226,7 @@ export declare class Workflow {
      */
     start(initialValue?: any): Promise<any>;
     /**
-     * The state of that workflow.
+     * Gets or sets state of that workflow.
      */
     state: any;
     /**

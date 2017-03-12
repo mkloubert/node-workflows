@@ -24,7 +24,7 @@ The [TypeScript](https://www.typescriptlang.org/) way:
 import * as Workflows from 'node-workflows';
 ```
 
-### Example
+### Examples
 
 ```javascript
 Workflows.start(function(ctx) {
@@ -73,7 +73,8 @@ Workflows.start(function(ctx) {
         // ctx.previousValue == 'TM'
         // ctx.value == 1781
 
-        ctx.result = 5979;
+        ctx.result = 5979;  // set a result value
+                            // for the workflow
     }
 }, function(ctx) {
     // ACTION #3
@@ -95,10 +96,88 @@ Workflows.start(function(ctx) {
     // SUCCESS
 
     console.log('SUCCESS: ' + result);  // 5979
+                                        // s. ctx.result
 }).catch(function(err) {
     // error thrown while execution!
 
     console.log('ERROR: ' + err);
+});
+```
+
+#### Share values
+
+```javascript
+// create workflow WITHOUT starting it
+var newWorkflow = Workflows.create(function(ctx) {
+    // ACTION #0
+
+    // ctx.value == 'PZ'  (s. below - newWorkflow.start())
+
+    ctx.value = 'MK';
+    ctx.nextValue = 23979;  // will be available in 'previousValue' property
+                            // of 'ACTION #1'
+                            // and resetted there
+}, function(ctx) {
+    // ACTION #1
+
+    // ctx.previousValue == 23979 (from 'ACTION #0')
+    // ctx.value == 'MK'
+
+    ctx.value = 'TM';
+    ctx.nextValue = 5979;  // for 'ACTION #2'
+}, function(ctx) {
+    // ACTION #2
+
+    // ctx.previousValue == 5979
+    // ctx.value == 'TM'
+}, function(ctx) {
+    // ACTION #3
+
+    // ctx.previousValue == undefined
+    // ctx.value == 'TM'
+});
+
+
+// START
+newWorkflow.start('PZ').then(function() {
+    // success
+}).catch(function(err) {
+    // ERROR!!!
+});
+```
+
+#### States
+
+```javascript
+// WORKFLOW #1
+Workflows.start(function(ctx) {
+    // will be available for all
+    // actions while the current execution
+    ctx.globals['action0'] = 'MK';
+
+    // is availabe ONLY FOR THIS ACTION
+    // and is availabe while the execution
+    // of the underlying workflow
+    ctx.state = 23979;
+
+    // will be available for all
+    // actions of all workflows
+    // and is stored permanent
+    ctx.permanentGlobals['workflow1_action0'] = 'A global value';
+}, function(ctx) {
+    // ACTION #1
+
+    // ctx.globals.action0 == 'MK';
+    // ctx.state == undefined
+
+    ctx.state = 5979;
+
+    //TODO
+});
+
+// WORKFLOW #2
+Workflows.start(function(ctx) {
+    // ctx.permanentGlobals['workflow1_action0'] == 'A global value'
 });
 ```
 
