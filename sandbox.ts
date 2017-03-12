@@ -2,34 +2,52 @@
 import * as Workflows from './index';
 
 // WORKFLOW #1
-var workflow1 = Workflows.start(function(ctx) {
-    // will be available for all other
-    // actions while the current execution
-    ctx.globals['action0'] = 'MK';
+var workflow = Workflows.create();
 
-    // is availabe ONLY FOR THIS ACTION
-    // and is availabe while the execution
-    // of the underlying workflow
-    ctx.state = 23979;
+// ADD ACTIONS
+workflow.then(function(ctx) {
+    // ACTION #0
 
-    ctx.permanentGlobals['workflow1_action0'] = 'A global value';
-}, function(ctx) {
+    ctx.events.on('myWorkflowEvent_0', function(val1: any, val2: any, val3: any) {
+        // will be invoked via 'ACTION #1'
+
+        // "TM+MK"
+        var v = val1 + val2 + val3;
+        if (v) {
+            
+        }
+    });
+}).next(function(ctx) {  // <= alias for 'then()'
     // ACTION #1
 
-    // ctx.globals.action0 == 'MK';
-    // ctx.state == undefined
+    ctx.events.emit('myWorkflowEvent_0',
+                    'TM', '+', 'MK');
 
-    ctx.state = 5979;
+    ctx.events.once('myWorkflowEvent_1', function() {
+        // will be invoked via 'ACTION #2'
+        // BUT: only once!
 
-    //TODO
+        if (1 == 1) {
+
+        }
+    });
+}).next(function(ctx) {
+    // ACTION #2
+
+    ctx.events.emit('myWorkflowEvent_1');  // invokes event in 'ACTION #1'
+    ctx.events.emit('myWorkflowEvent_1');  // DOES NOT invoke event in 'ACTION #1'
+                                           // because it has already been invoked
 });
 
-// WORKFLOW #2
-var workflow2 = Workflows.start(function(ctx) {
-    // ctx.permanentGlobals['workflow1_action0'] == 'A global value'
+// START
+workflow.start().then(function(result) {
+    // success
+    if (result) {
 
-    var s = ctx.permanentGlobals['workflow1_action0'];
-    if (ctx) {
+    }
+}).catch(function(err) {
+    // ERROR
+    if (err) {
 
     }
 });
