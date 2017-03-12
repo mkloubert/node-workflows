@@ -260,6 +260,26 @@ workflow.start().then(function() {
 });
 ```
 
+#### Other information
+
+```javascript
+Workflows.start(function(ctx) {
+    // ctx.count              => the total number of all actions of that workflow
+    // ctx.current            => the context of the current executing action
+    // ctx.executions         => the number of action executions
+    // ctx.index              => zero based index of THAT ACTION
+    // ctx.isBetween          => is between first AND last action or not
+    // ctx.isFirst            => is FIRST action or not
+    // ctx.isLast             => is LAST action or not
+    // ctx.previousEndTime    => the end time of the PREVIOUS action
+    // ctx.previousIndex      => zero based index of the PREVIOUS action
+    // ctx.previousStartTime  => the start time of the PREVIOUS action
+    // ctx.startTime          => the start time of the workflow
+    // ctx.time               => the start time of that action
+    // ctx.workflowExecutions => the number workflow executions
+});
+```
+
 ## Documentation
 
 The full API documentation can be found [here](https://mkloubert.github.io/node-workflows/).

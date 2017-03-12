@@ -31,8 +31,6 @@ workflow.then(function(ctx) {
 
         ctx.value = 'MK';
     });
-
-    ctx.finish();
 }).next(function(ctx) {
     // ACTION #2
 
