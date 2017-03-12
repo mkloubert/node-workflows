@@ -198,7 +198,7 @@ workflow.on('action.new', function(action, newActionCount) {
     // new action added
 });
 
-workflow.on('end', function(err) {
+workflow.on('end', function(err, workflowExecutionCount, result, endTime, value, previousValue, previousIndex) {
     // workflow has ended
 });
 
@@ -219,7 +219,7 @@ workflow.on('reset.state', function(oldValue) {
     // state value of workflow has been resetted
 });
 
-workflow.on('start', function() {
+workflow.on('start', function(workflowExecutionCount, initialValue, startTime) {
     // workflow is starting
 });
 

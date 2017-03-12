@@ -374,10 +374,12 @@ export class Workflow extends events.EventEmitter {
                 let value = initialValue;
 
                 let completed = (err: any) => {
+                    let endTime = new Date();
+
                     actionEvents.removeAllListeners();
 
                     me.emit('end',
-                            err, result, prevIndx, prevVal, value);
+                            err, newExecutionsValue, result, endTime, value, prevVal, prevIndx);
 
                     if (err) {
                         reject(err);
@@ -542,9 +544,11 @@ export class Workflow extends events.EventEmitter {
                     }
                 };
 
-                me.emit('start');
-
                 startTime = new Date();
+
+                me.emit('start',
+                        newExecutionsValue, value, startTime);
+
                 nextAction();  // start with first action
                                // (if available)
             }
