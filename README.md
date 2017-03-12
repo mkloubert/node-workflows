@@ -29,6 +29,7 @@ import * as Workflows from 'node-workflows';
 ```javascript
 Workflows.start(function(ctx) {
     // ACTION #0
+    console.log('Entering ACTION #0...');
 
     // will be available in
     // 'previousValue' property
@@ -39,6 +40,7 @@ Workflows.start(function(ctx) {
     ctx.result = 23979;
 }, function(ctx) {
     // ACTION #1
+    console.log('Entering ACTION #1...');
 
     // run "async"
     return new Promise(function(resolve, reject) {
@@ -61,6 +63,7 @@ Workflows.start(function(ctx) {
     });
 }, function(ctx) {
     // ACTION #2
+    console.log('Entering ACTION #2...');
 
     // ctx.previousValue == 'TM'
     // ctx.value == 1781
@@ -68,6 +71,7 @@ Workflows.start(function(ctx) {
     ctx.result = 5979;
 }, function(ctx) {
     // ACTION #3
+    console.log('Entering ACTION #3...');
 
     // ctx.previousValue == undefined
     // ctx.result == 5979
