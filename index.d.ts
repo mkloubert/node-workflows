@@ -36,6 +36,10 @@ export interface WorkflowActionContext {
      */
     readonly count: number;
     /**
+     * Gets the context of the current executing action.
+     */
+    readonly current: WorkflowActionContext;
+    /**
      * Gets the (global) events for all actions.
      */
     readonly events: NodeJS.EventEmitter;
@@ -130,7 +134,7 @@ export interface WorkflowActionContext {
     /**
      * Gets or sets the result of the whole workflow.
      */
-    result?: any;
+    result: any;
     /**
      * Gets the start time of the workflow.
      */
@@ -146,7 +150,7 @@ export interface WorkflowActionContext {
     /**
      * Gets or sets a value for the whole execution chain.
      */
-    value?: any;
+    value: any;
     /**
      * Accesses the event emitter of the underlying workflow.
      */

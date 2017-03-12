@@ -62,6 +62,10 @@ export interface WorkflowActionContext {
      */
     readonly count: number;
     /**
+     * Gets the context of the current executing action.
+     */
+    readonly current: WorkflowActionContext;
+    /**
      * Gets the (global) events for all actions.
      */
     readonly events: NodeJS.EventEmitter;
@@ -156,7 +160,7 @@ export interface WorkflowActionContext {
     /**
      * Gets or sets the result of the whole workflow.
      */
-    result?: any;
+    result: any;
     /**
      * Gets the start time of the workflow.
      */
@@ -172,7 +176,7 @@ export interface WorkflowActionContext {
     /**
      * Gets or sets a value for the whole execution chain.
      */
-    value?: any;
+    value: any;
     /**
      * Accesses the event emitter of the underlying workflow.
      */
@@ -363,6 +367,7 @@ export class Workflow extends events.EventEmitter {
                 let nextAction: () => void;
 
                 let actionEvents = new events.EventEmitter();
+                let current: WorkflowActionContext;
                 let executions = 0;
                 let index = -1;
                 let prevIndx: number;
@@ -391,6 +396,8 @@ export class Workflow extends events.EventEmitter {
 
                 nextAction = () => {
                     try {
+                        current = null;
+
                         ++index;
                         if (index >= entries.length) {
                             completed(null);
@@ -398,11 +405,13 @@ export class Workflow extends events.EventEmitter {
                         }
 
                         let e = entries[index];
+                        ++executions;
 
                         let ctx: WorkflowActionContext = {
                             count: entries.length,
+                            current: undefined,
                             events: actionEvents,
-                            executions: ++executions,
+                            executions: undefined,
                             finish: function() {
                                 index = entries.length - 1;
                                 return this;
@@ -440,18 +449,35 @@ export class Workflow extends events.EventEmitter {
                             previousIndex: prevIndx,
                             previousStartTime: prevStartTime,
                             previousValue: prevVal,
-                            result: result,
+                            result: undefined,
                             startTime: startTime,
                             state: undefined,
                             time: undefined,
-                            value: value,
+                            value: undefined,
                             workflowEvents: me,
                             workflowExecutions: me._executions,
                             workflowState: undefined,
                         };
 
+                        // ctx.current
+                        Object.defineProperty(ctx, 'current', {
+                            enumerable: true,
+                            get: function() {
+                                return current;
+                            }
+                        });
+
+                        // ctx.executions
+                        Object.defineProperty(ctx, 'executions', {
+                            enumerable: true,
+                            get: function() {
+                                return executions;
+                            }
+                        });
+
                         // ctx.permanentState
                         Object.defineProperty(ctx, 'permanentState', {
+                            enumerable: true,
                             get: function() {
                                 return me._actionStates[index];
                             },
@@ -460,8 +486,20 @@ export class Workflow extends events.EventEmitter {
                             }
                         });
 
+                        // ctx.result
+                        Object.defineProperty(ctx, 'result', {
+                            enumerable: true,
+                            get: function() {
+                                return result;
+                            },
+                            set: function(newValue) {
+                                result = newValue;
+                            }
+                        });
+
                         // ctx.state
                         Object.defineProperty(ctx, 'state', {
+                            enumerable: true,
                             get: function() {
                                 return actionStates[index];
                             },
@@ -470,8 +508,20 @@ export class Workflow extends events.EventEmitter {
                             }
                         });
 
+                        // ctx.value
+                        Object.defineProperty(ctx, 'value', {
+                            enumerable: true,
+                            get: function() {
+                                return value;
+                            },
+                            set: function(newValue) {
+                                value = newValue;
+                            }
+                        });
+
                         // ctx.workflowState
                         Object.defineProperty(ctx, 'workflowState', {
+                            enumerable: true,
                             get: function() {
                                 return me.state;
                             },
@@ -508,6 +558,7 @@ export class Workflow extends events.EventEmitter {
                         me.emit('action.before',
                                 ctx);
 
+                        current = ctx;
                         prevEndTime = undefined;
                         prevStartTime = (<any>ctx).time = new Date();
                         if (e.action) {
