@@ -277,7 +277,7 @@ workflow.on('start', function(workflowExecutionCount, initialValue, startTime) {
     // workflow is starting
 });
 
-// events for the execution
+// custom events for the execution
 workflow.then(function(ctx) {
     // ACTION #0
 
@@ -304,6 +304,24 @@ workflow.then(function(ctx) {
     ctx.events.emit('myWorkflowEvent_1');  // invokes event in 'ACTION #1'
     ctx.events.emit('myWorkflowEvent_1');  // DOES NOT invoke event in 'ACTION #1'
                                            // because it has already been invoked
+
+    // s. below
+    ctx.globalEvents.emit('myGlobalEvent', 1234);
+    ctx.globalEvents.emit('myGlobalEvent', 5678);  // not invoked
+
+    ctx.workflowEvents.emit('myCustomWorkflowEvent', 'XyZ_1');
+    ctx.workflowEvents.emit('myCustomWorkflowEvent', 'XyZ_2');
+});
+
+// a global event
+Workflows.EVENTS.once('myGlobalEvent', function(val) {
+    // val == 1234
+});
+
+// a custom workflow event
+workflow.on('myCustomWorkflowEvent', function(val) {
+    // [0] val == 'XyZ_1'
+    // [1] val == 'XyZ_2'
 });
 
 // START

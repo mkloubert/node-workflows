@@ -1,53 +1,67 @@
 import * as Workflows from './index';
 
-var workflow = Workflows.create(function(ctx) {
+var workflow = Workflows.create();
+
+// custom events for the execution
+workflow.then(function(ctx) {
     // ACTION #0
 
-    // skip 'ACTION #1'
-    ctx.skip(1);  // alternate: ctx.skip()
-}, function(ctx) {
+    ctx.events.on('myWorkflowEvent_0', function(val1: string, val2: string, val3: string) {
+        // will be invoked via 'ACTION #1'
+
+        // v == "TM+MK"
+        var v = val1 + val2 + val3;
+    });
+}).next(function(ctx) {  // <= alias for 'then()'
     // ACTION #1
 
-    // goto 'ACTION #0' ...
-    ctx.gotoFirst();
+    // invokes event in 'ACTION #0'
+    ctx.events.emit('myWorkflowEvent_0',
+                    'TM', '+', 'MK');
 
-    // ... but directly skip
-    // #1 and #2
-    ctx.skipWhile = function(ctxToCheck) {
-        return ctxToCheck.index < 3;
-    };
-}, function(ctx) {
+    ctx.events.once('myWorkflowEvent_1', function() {
+        // will be invoked via 'ACTION #2'
+        // BUT: only once!
+    });
+}).next(function(ctx) {
     // ACTION #2
 
-    ctx.goto(1);  // goto 'ACTION #1'
-}, function(ctx) {
-    // ACTION #3
+    ctx.events.emit('myWorkflowEvent_1');  // invokes event in 'ACTION #1'
+    ctx.events.emit('myWorkflowEvent_1');  // DOES NOT invoke event in 'ACTION #1'
+                                           // because it has already been invoked
 
-    ctx.gotoLast();
-}, function(ctx) {
-    // ACTION #4
+    // s. below
+    ctx.globalEvents.emit('myGlobalEvent', 1234);
+    ctx.globalEvents.emit('myGlobalEvent', 5678);  // not invoked
 
-    if (ctx) {
+    ctx.workflowEvents.emit('myCustomWorkflowEvent', 'XyZ_1');
+    ctx.workflowEvents.emit('myCustomWorkflowEvent', 'XyZ_2');
+});
 
-    }
-}, function(ctx) {
-    // ACTION #5
+// a global event
+Workflows.EVENTS.once('myGlobalEvent', function(val: number) {
+    // val == 1234
 
-    if (ctx) {
-        
-    }
-}, function(ctx) {
-    // ACTION #6
-
-    if (ctx) {
+    if (val) {
         
     }
 });
 
-workflow.on('action.before', function(ctx: Workflows.WorkflowActionContext) {
-    console.log('ACTION #' + ctx.index);
+// a custom workflow event
+workflow.on('myCustomWorkflowEvent', function(val: string) {
+    // [0] val == 'XyZ_1'
+    // [1] val == 'XyZ_2'
 
-    ctx.result = ctx.index;
+    if (val) {
+
+    }
+});
+
+// START
+workflow.start().then(function() {
+    // success
+}).catch(function() {
+    // ERROR
 });
 
 workflow.start().then(function(result) {
