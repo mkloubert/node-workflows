@@ -104,48 +104,6 @@ Workflows.start(function(ctx) {
 });
 ```
 
-#### Share values
-
-```javascript
-// create workflow WITHOUT starting it
-var newWorkflow = Workflows.create(function(ctx) {
-    // ACTION #0
-
-    // ctx.value == 'PZ'  (s. below - newWorkflow.start())
-
-    ctx.value = 'MK';
-    ctx.nextValue = 23979;  // will be available in 'previousValue' property
-                            // of 'ACTION #1'
-                            // and resetted there
-}, function(ctx) {
-    // ACTION #1
-
-    // ctx.previousValue == 23979 (from 'ACTION #0')
-    // ctx.value == 'MK'
-
-    ctx.value = 'TM';
-    ctx.nextValue = 5979;  // for 'ACTION #2'
-}, function(ctx) {
-    // ACTION #2
-
-    // ctx.previousValue == 5979
-    // ctx.value == 'TM'
-}, function(ctx) {
-    // ACTION #3
-
-    // ctx.previousValue == undefined
-    // ctx.value == 'TM'
-});
-
-
-// START
-newWorkflow.start('PZ').then(function() {
-    // success
-}).catch(function(err) {
-    // ERROR!!!
-});
-```
-
 #### Jump / skip
 
 ```javascript
@@ -196,6 +154,48 @@ workflow.start().then(function(result) {
     // success
 
     // result == 6
+}).catch(function(err) {
+    // ERROR!!!
+});
+```
+
+#### Share values
+
+```javascript
+// create workflow WITHOUT starting it
+var newWorkflow = Workflows.create(function(ctx) {
+    // ACTION #0
+
+    // ctx.value == 'PZ'  (s. below - newWorkflow.start())
+
+    ctx.value = 'MK';
+    ctx.nextValue = 23979;  // will be available in 'previousValue' property
+                            // of 'ACTION #1'
+                            // and resetted there
+}, function(ctx) {
+    // ACTION #1
+
+    // ctx.previousValue == 23979 (from 'ACTION #0')
+    // ctx.value == 'MK'
+
+    ctx.value = 'TM';
+    ctx.nextValue = 5979;  // for 'ACTION #2'
+}, function(ctx) {
+    // ACTION #2
+
+    // ctx.previousValue == 5979
+    // ctx.value == 'TM'
+}, function(ctx) {
+    // ACTION #3
+
+    // ctx.previousValue == undefined
+    // ctx.value == 'TM'
+});
+
+
+// START
+newWorkflow.start('PZ').then(function() {
+    // success
 }).catch(function(err) {
     // ERROR!!!
 });
