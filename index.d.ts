@@ -13,6 +13,19 @@ export declare type ValueStorage = {
  */
 export declare type WorkflowAction = (ctx: WorkflowActionContext) => WorkflowActionResult;
 /**
+ * An entry of a workflow action.
+ */
+export interface WorkflowActionEntry {
+    /**
+     * Gets the underlying action.
+     */
+    readonly action: WorkflowAction;
+    /**
+     * Gets the object / value that should be linked with the action.
+     */
+    readonly thisArg: any;
+}
+/**
  * An execution context of a workflow action.
  */
 export interface WorkflowActionContext {
@@ -122,6 +135,19 @@ export interface WorkflowActionContext {
  */
 export declare type WorkflowActionResult = Promise<any> | void;
 /**
+ * An object that executes a workflow action.
+ */
+export interface WorkflowExecutor {
+    /**
+     * Executes the action.
+     */
+    execute: WorkflowAction;
+}
+/**
+ * Possible types for executing a workflow action.
+ */
+export declare type WorkflowExecutorType = WorkflowAction | WorkflowExecutor;
+/**
  * Stores global values.
  */
 export declare const GLOBALS: ValueStorage;
@@ -132,7 +158,7 @@ export declare class Workflow {
     /**
      * Stores the actions of the Workflow.
      */
-    protected _actions: WorkflowAction[];
+    protected _actions: WorkflowActionEntry[];
     /**
      * Stores the permanent state values of the actions.
      */
@@ -148,7 +174,7 @@ export declare class Workflow {
     /**
      * Alias for 'then'.
      */
-    next(action?: WorkflowAction): Workflow;
+    next(executor?: WorkflowExecutorType, thisArg?: any): Workflow;
     /**
      * Resets the workflow.
      *
@@ -190,25 +216,26 @@ export declare class Workflow {
     /**
      * Adds a new action.
      *
-     * @param {WorkflowAction} [action] The action to add.
+     * @param {WorkflowExecutorType} [executor] The executor to add.
+     * @param {any} [thisArg] The optional object / value that should be linked with the underlying action.
      *
      * @chainable
      */
-    then(action?: WorkflowAction): Workflow;
+    then(executor?: WorkflowExecutorType, thisArg?: any): Workflow;
 }
 /**
  * Creates a new workflow.
  *
- * @param {...WorkflowAction[]} firstActions The first actions.
+ * @param {...WorkflowExecutorType[]} firstExecutors The first executors.
  *
  * @returns {Workflow} The new workflow.
  */
-export declare function create(...firstActions: WorkflowAction[]): Workflow;
+export declare function create(...firstExecutors: WorkflowExecutorType[]): Workflow;
 /**
  * Starts a new workflow.
  *
- * @param {...WorkflowAction[]} actions The first actions.
+ * @param {...WorkflowExecutorType[]} executors The first executors.
  *
  * @returns {Promise<any>} The promise with the result of the workflow.
  */
-export declare function start(...actions: WorkflowAction[]): Promise<any>;
+export declare function start(...executors: WorkflowExecutorType[]): Promise<any>;

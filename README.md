@@ -61,14 +61,19 @@ Workflows.start(function(ctx) {
             reject(e);
         }
     });
-}, function(ctx) {
-    // ACTION #2
-    console.log('Entering ACTION #2...');
+}, {
+    // use an object
+    // with an 'execute()' method
+    // instead a function
+    execute: function(ctx) {
+        // ACTION #2
+        console.log('Entering ACTION #2...');
 
-    // ctx.previousValue == 'TM'
-    // ctx.value == 1781
+        // ctx.previousValue == 'TM'
+        // ctx.value == 1781
 
-    ctx.result = 5979;
+        ctx.result = 5979;
+    }
 }, function(ctx) {
     // ACTION #3
     console.log('Entering ACTION #3...');

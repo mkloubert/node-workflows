@@ -38,6 +38,20 @@ export type ValueStorage = { [key: string]: any};
 export type WorkflowAction = (ctx: WorkflowActionContext) => WorkflowActionResult;
 
 /**
+ * An entry of a workflow action.
+ */
+export interface WorkflowActionEntry {
+    /**
+     * Gets the underlying action.
+     */
+    readonly action: WorkflowAction;
+    /**
+     * Gets the object / value that should be linked with the action.
+     */
+    readonly thisArg: any;
+}
+
+/**
  * An execution context of a workflow action.
  */
 export interface WorkflowActionContext {
@@ -143,10 +157,26 @@ export interface WorkflowActionContext {
     workflowState: any;
 }
 
+
 /**
  * The result of a workflow action.
  */
 export type WorkflowActionResult = Promise<any> | void;
+
+/**
+ * An object that executes a workflow action.
+ */
+export interface WorkflowExecutor {
+    /**
+     * Executes the action.
+     */
+    execute: WorkflowAction;
+}
+
+/**
+ * Possible types for executing a workflow action.
+ */
+export type WorkflowExecutorType = WorkflowAction | WorkflowExecutor;
 
 /**
  * Stores global values.
@@ -160,7 +190,7 @@ export class Workflow {
     /**
      * Stores the actions of the Workflow.
      */
-    protected _actions: WorkflowAction[] = [];
+    protected _actions: WorkflowActionEntry[] = [];
     /**
      * Stores the permanent state values of the actions.
      */
@@ -180,7 +210,7 @@ export class Workflow {
     /**
      * Alias for 'then'.
      */
-    public next(action?: WorkflowAction): Workflow {
+    public next(executor?: WorkflowExecutorType, thisArg?: any): Workflow {
         return this.then
                    .apply(this, arguments);
     }
@@ -248,7 +278,7 @@ export class Workflow {
             try {
                 ++me._executions;
 
-                let allActions = me._actions.map(x => x);
+                let entries = me._actions.map(x => x);
 
                 let actionStates: any[] = [];
                 let globals: ValueStorage = {};
@@ -265,24 +295,24 @@ export class Workflow {
                 nextAction = () => {
                     try {
                         ++index;
-                        if (index >= allActions.length) {
+                        if (index >= entries.length) {
                             resolve(result);
                             return;
                         }
 
-                        let action = allActions[index];
+                        let e = entries[index];
 
                         let ctx: WorkflowActionContext = {
-                            count: allActions.length,
+                            count: entries.length,
                             executions: ++executions,
                             finish: function() {
-                                index = allActions.length - 1;
+                                index = entries.length - 1;
                                 return this;
                             },
                             globals: globals,
                             goto: function(newIndex) {
                                 --newIndex;
-                                if (newIndex < 0 || newIndex >= allActions.length) {
+                                if (newIndex < 0 || newIndex >= entries.length) {
                                     throw new Error('Index out of range!');
                                 }
 
@@ -294,7 +324,7 @@ export class Workflow {
                                 return this;
                             },
                             gotoLast: function() {
-                                index = allActions.length - 1 - 1;
+                                index = entries.length - 1 - 1;
                                 return this;
                             },
                             gotoNext: function() {
@@ -302,9 +332,9 @@ export class Workflow {
                                 return this;
                             },
                             index: index,
-                            isBetween: index > 0 && (index < (allActions.length - 1)),
+                            isBetween: index > 0 && (index < (entries.length - 1)),
                             isFirst: 0 === index,
-                            isLast: (allActions.length - 1) === index,
+                            isLast: (entries.length - 1) === index,
                             permanentGlobals: GLOBALS,
                             permanentState: undefined,
                             previousIndex: prevIndx,
@@ -366,19 +396,21 @@ export class Workflow {
                             }
                         };
 
-                        if (action) {
-                            let result = action(ctx);
+                        if (e.action) {
+                            let result = e.action
+                                          .apply(e.thisArg,
+                                                 [ ctx ]);
                             if (result) {
                                 // promise => "async" execution
 
-                                result.then(function(nextValue?) {
+                                result.then(function(nextValue?: any) {
                                     if (arguments.length > 0) {
                                         actionCompleted(null, nextValue);
                                     }
                                     else {
                                         actionCompleted(null);
                                     }
-                                }, (err) => {
+                                }, (err: any) => {
                                     actionCompleted(err);  // error
                                 });
                             }
@@ -412,12 +444,39 @@ export class Workflow {
     /**
      * Adds a new action.
      * 
-     * @param {WorkflowAction} [action] The action to add.
+     * @param {WorkflowExecutorType} [executor] The executor to add.
+     * @param {any} [thisArg] The optional object / value that should be linked with the underlying action.
      * 
      * @chainable
      */
-    public then(action?: WorkflowAction): Workflow {
-        this._actions.push(action);
+    public then(executor?: WorkflowExecutorType, thisArg?: any): Workflow {
+        if (arguments.length < 2) {
+            thisArg = this;
+        }
+
+        let action: WorkflowAction;
+        if (executor) {
+            if ('function' === typeof executor) {
+                action = executor;
+            }
+            else {
+                let e: WorkflowExecutor = executor;
+
+                action = function(ctx) {
+                    if (e.execute) {
+                        e.execute(ctx);
+                    }
+                };
+            }
+        }
+        else {
+            action = <any>executor;
+        }
+
+        this._actions.push({
+            action: action,
+            thisArg: thisArg,
+        });
 
         return this;
     }
@@ -427,16 +486,16 @@ export class Workflow {
 /**
  * Creates a new workflow.
  * 
- * @param {...WorkflowAction[]} firstActions The first actions.
+ * @param {...WorkflowExecutorType[]} firstExecutors The first executors.
  * 
  * @returns {Workflow} The new workflow.
  */
-export function create(...firstActions: WorkflowAction[]): Workflow {
+export function create(...firstExecutors: WorkflowExecutorType[]): Workflow {
     let newWorkflow = new Workflow();
 
-    if (firstActions) {
-        firstActions.forEach(a => {
-            newWorkflow.then(a);
+    if (firstExecutors) {
+        firstExecutors.forEach(e => {
+            newWorkflow.then(e);
         });
     }
     
@@ -446,16 +505,16 @@ export function create(...firstActions: WorkflowAction[]): Workflow {
 /**
  * Starts a new workflow.
  * 
- * @param {...WorkflowAction[]} actions The first actions.
+ * @param {...WorkflowExecutorType[]} executors The first executors.
  * 
  * @returns {Promise<any>} The promise with the result of the workflow.
  */
-export function start(...actions: WorkflowAction[]): Promise<any> {
+export function start(...executors: WorkflowExecutorType[]): Promise<any> {
     let newWorkflow = new Workflow();
 
-    if (actions) {
-        actions.forEach(a => {
-            newWorkflow.then(a);
+    if (executors) {
+        executors.forEach(e => {
+            newWorkflow.then(e);
         });
     }
 
