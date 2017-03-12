@@ -393,3 +393,42 @@ export class Workflow {
         return this;
     }
 }
+
+
+/**
+ * Creates a new workflow.
+ * 
+ * @param {...WorkflowAction[]} firstActions The first actions.
+ * 
+ * @returns {Workflow} The new workflow.
+ */
+export function create(...firstActions: WorkflowAction[]): Workflow {
+    let newWorkflow = new Workflow();
+
+    if (firstActions) {
+        firstActions.forEach(a => {
+            newWorkflow.then(a);
+        });
+    }
+    
+    return newWorkflow;
+}
+
+/**
+ * Starts a new workflow.
+ * 
+ * @param {...WorkflowAction[]} actions The first actions.
+ * 
+ * @returns {Promise<any>} The promise with the result of the workflow.
+ */
+export function start(...actions: WorkflowAction[]): Promise<any> {
+    let newWorkflow = new Workflow();
+
+    if (actions) {
+        actions.forEach(a => {
+            newWorkflow.then(a);
+        });
+    }
+
+    return newWorkflow.start();
+}

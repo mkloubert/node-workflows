@@ -3,3 +3,4 @@ pushall.sh
 index.ts
 .vscode
 /sandbox.*
+/gen-typedoc.cmd

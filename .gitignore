@@ -2,3 +2,4 @@
 pushall.sh
 **/*.map
 **/*.js
+/gen-typedoc.cmd

@@ -178,3 +178,19 @@ export declare class Workflow {
      */
     then(action?: WorkflowAction): Workflow;
 }
+/**
+ * Creates a new workflow.
+ *
+ * @param {...WorkflowAction[]} firstActions The first actions.
+ *
+ * @returns {Workflow} The new workflow.
+ */
+export declare function create(...firstActions: WorkflowAction[]): Workflow;
+/**
+ * Starts a new workflow.
+ *
+ * @param {...WorkflowAction[]} actions The first actions.
+ *
+ * @returns {Promise<any>} The promise with the result of the workflow.
+ */
+export declare function start(...actions: WorkflowAction[]): Promise<any>;
