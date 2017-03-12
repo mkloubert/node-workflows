@@ -36,6 +36,10 @@ export interface WorkflowActionContext {
      */
     readonly count: number;
     /**
+     * Gets the (global) events for all actions.
+     */
+    readonly events: NodeJS.EventEmitter;
+    /**
      * Gets the current number of executed actions.
      */
     readonly executions: number;
@@ -44,7 +48,11 @@ export interface WorkflowActionContext {
      *
      * @chainable
      */
-    readonly finish: () => WorkflowAction;
+    readonly finish: () => this;
+    /**
+     * Accesses the global event emitter.
+     */
+    readonly globalEvents: NodeJS.EventEmitter;
     /**
      * Gets the global value storage.
      */
@@ -56,25 +64,25 @@ export interface WorkflowActionContext {
      *
      * @chainable
      */
-    readonly goto: (newIndex: number) => WorkflowAction;
+    readonly goto: (newIndex: number) => this;
     /**
      * Sets the pointer to the first action.
      *
      * @chainable
      */
-    readonly gotoFirst: () => WorkflowAction;
+    readonly gotoFirst: () => this;
     /**
      * Sets the pointer to the last action.
      *
      * @chainable
      */
-    readonly gotoLast: () => WorkflowAction;
+    readonly gotoLast: () => this;
     /**
      * Sets the pointer to the next action.
      *
      * @chainable
      */
-    readonly gotoNext: () => WorkflowAction;
+    readonly gotoNext: () => this;
     /**
      * Gets the current zero based index.
      */
@@ -104,25 +112,45 @@ export interface WorkflowActionContext {
      */
     permanentState: any;
     /**
+     * Gets the end time of the previous action.
+     */
+    readonly previousEndTime?: Date;
+    /**
      * Gets the index of the previous workflow.
      */
     readonly previousIndex?: number;
     /**
+     * Gets the start time of the previous action.
+     */
+    readonly previousStartTime?: Date;
+    /**
      * Gets the value from the previous execution.
      */
-    readonly previousValue: any;
+    readonly previousValue?: any;
     /**
      * Gets or sets the result of the whole workflow.
      */
     result?: any;
     /**
+     * Gets the start time of the workflow.
+     */
+    readonly startTime: Date;
+    /**
      * Gets or sets the state value for the underlying action.
      */
     state: any;
     /**
+     * Gets the time the action has been started.
+     */
+    readonly time: Date;
+    /**
      * Gets or sets a value for the whole execution chain.
      */
     value?: any;
+    /**
+     * Accesses the event emitter of the underlying workflow.
+     */
+    readonly workflowEvents: NodeJS.EventEmitter;
     /**
      * Gets the number of workflow executions.
      */
@@ -149,6 +177,10 @@ export interface WorkflowExecutor {
  * Possible types for executing a workflow action.
  */
 export declare type WorkflowExecutorType = WorkflowAction | WorkflowExecutor;
+/**
+ * Global events.
+ */
+export declare const EVENTS: events.EventEmitter;
 /**
  * Stores global values.
  */
@@ -180,7 +212,7 @@ export declare class Workflow extends events.EventEmitter {
     /**
      * Alias for 'then'.
      */
-    next(executor?: WorkflowExecutorType, thisArg?: any): Workflow;
+    next(executor?: WorkflowExecutorType, thisArg?: any): this;
     /**
      * Notifies for a property change.
      *
@@ -190,25 +222,25 @@ export declare class Workflow extends events.EventEmitter {
      *
      * @chainable
      */
-    protected notifyPropertyChanged(propertyName: string, oldValue: any, newValue: any): Workflow;
+    protected notifyPropertyChanged(propertyName: string, oldValue: any, newValue: any): this;
     /**
      * Resets the workflow.
      *
      * @chainable
      */
-    reset(): Workflow;
+    reset(): this;
     /**
      * Resets the state values of the actions.
      *
      * @chainable
      */
-    resetActionStates(): Workflow;
+    resetActionStates(): this;
     /**
      * Resets the state value.
      *
      * @chainable
      */
-    resetState(): Workflow;
+    resetState(): this;
     /**
      * Sets the state value.
      *
@@ -216,7 +248,7 @@ export declare class Workflow extends events.EventEmitter {
      *
      * @chainable
      */
-    setState(newValue: any): Workflow;
+    setState(newValue: any): this;
     /**
      * Starts the workflow.
      *
@@ -237,7 +269,7 @@ export declare class Workflow extends events.EventEmitter {
      *
      * @chainable
      */
-    then(executor?: WorkflowExecutorType, thisArg?: any): Workflow;
+    then(executor?: WorkflowExecutorType, thisArg?: any): this;
 }
 /**
  * Creates a new workflow.

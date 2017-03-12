@@ -93,12 +93,12 @@ Workflows.start(function(ctx) {
         ctx.goto(2);
     }
 }).then(function(result) {
-    // SUCCESS
+    // finished with SUCCESS
 
     console.log('SUCCESS: ' + result);  // 5979
                                         // s. ctx.result
 }).catch(function(err) {
-    // error thrown while execution!
+    // finished with ERROR
 
     console.log('ERROR: ' + err);
 });

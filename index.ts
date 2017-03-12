@@ -62,6 +62,10 @@ export interface WorkflowActionContext {
      */
     readonly count: number;
     /**
+     * Gets the (global) events for all actions.
+     */
+    readonly events: NodeJS.EventEmitter;
+    /**
      * Gets the current number of executed actions.
      */
     readonly executions: number;
@@ -70,7 +74,11 @@ export interface WorkflowActionContext {
      * 
      * @chainable
      */
-    readonly finish: () => WorkflowAction;
+    readonly finish: () => this;
+    /**
+     * Accesses the global event emitter.
+     */
+    readonly globalEvents: NodeJS.EventEmitter;
     /**
      * Gets the global value storage.
      */
@@ -82,25 +90,25 @@ export interface WorkflowActionContext {
      * 
      * @chainable
      */
-    readonly goto: (newIndex: number) => WorkflowAction;
+    readonly goto: (newIndex: number) => this;
     /**
      * Sets the pointer to the first action.
      * 
      * @chainable
      */
-    readonly gotoFirst: () => WorkflowAction;
+    readonly gotoFirst: () => this;
     /**
      * Sets the pointer to the last action.
      * 
      * @chainable
      */
-    readonly gotoLast: () => WorkflowAction;
+    readonly gotoLast: () => this;
     /**
      * Sets the pointer to the next action.
      * 
      * @chainable
      */
-    readonly gotoNext: () => WorkflowAction;
+    readonly gotoNext: () => this;
     /**
      * Gets the current zero based index.
      */
@@ -130,25 +138,45 @@ export interface WorkflowActionContext {
      */
     permanentState: any;
     /**
+     * Gets the end time of the previous action.
+     */
+    readonly previousEndTime?: Date;
+    /**
      * Gets the index of the previous workflow.
      */
     readonly previousIndex?: number;
     /**
+     * Gets the start time of the previous action.
+     */
+    readonly previousStartTime?: Date;
+    /**
      * Gets the value from the previous execution.
      */
-    readonly previousValue: any;
+    readonly previousValue?: any;
     /**
      * Gets or sets the result of the whole workflow.
      */
     result?: any;
     /**
+     * Gets the start time of the workflow.
+     */
+    readonly startTime: Date;
+    /**
      * Gets or sets the state value for the underlying action.
      */
     state: any;
     /**
+     * Gets the time the action has been started.
+     */
+    readonly time: Date;
+    /**
      * Gets or sets a value for the whole execution chain.
      */
     value?: any;
+    /**
+     * Accesses the event emitter of the underlying workflow.
+     */
+    readonly workflowEvents: NodeJS.EventEmitter;
     /**
      * Gets the number of workflow executions.
      */
@@ -180,6 +208,10 @@ export interface WorkflowExecutor {
  */
 export type WorkflowExecutorType = WorkflowAction | WorkflowExecutor;
 
+/**
+ * Global events.
+ */
+export const EVENTS = new events.EventEmitter();
 /**
  * Stores global values.
  */
@@ -216,7 +248,7 @@ export class Workflow extends events.EventEmitter {
     /**
      * Alias for 'then'.
      */
-    public next(executor?: WorkflowExecutorType, thisArg?: any): Workflow {
+    public next(executor?: WorkflowExecutorType, thisArg?: any): this {
         return this.then
                    .apply(this, arguments);
     }
@@ -231,7 +263,7 @@ export class Workflow extends events.EventEmitter {
      * @chainable
      */
     protected notifyPropertyChanged(propertyName: string,
-                                    oldValue: any, newValue: any): Workflow {
+                                    oldValue: any, newValue: any): this {
         this.emit('property.changed',
                   propertyName,
                   newValue, oldValue);
@@ -244,7 +276,7 @@ export class Workflow extends events.EventEmitter {
      * 
      * @chainable
      */
-    public reset(): Workflow {
+    public reset(): this {
         this._actions = [];
         this._actionStates = [];
         this._executions = 0;
@@ -262,7 +294,7 @@ export class Workflow extends events.EventEmitter {
      * 
      * @chainable
      */
-    public resetActionStates(): Workflow {
+    public resetActionStates(): this {
         this._actionStates = [];
 
         this.emit('reset.actionstates');
@@ -275,7 +307,7 @@ export class Workflow extends events.EventEmitter {
      * 
      * @chainable
      */
-    public resetState(): Workflow {
+    public resetState(): this {
         this.setState(undefined);
 
         this.emit('reset.state');
@@ -290,7 +322,7 @@ export class Workflow extends events.EventEmitter {
      * 
      * @chainable
      */
-    public setState(newValue: any): Workflow {
+    public setState(newValue: any): this {
         this.state = newValue;
 
         return this;
@@ -321,18 +353,36 @@ export class Workflow extends events.EventEmitter {
 
                 let nextAction: () => void;
 
+                let actionEvents = new events.EventEmitter();
                 let executions = 0;
                 let index = -1;
                 let prevIndx: number;
+                let prevEndTime: Date;
+                let prevStartTime: Date;
                 let prevVal: any;
                 let result: any;
+                let startTime: Date;
                 let value = initialValue;
+
+                let completed = (err: any) => {
+                    actionEvents.removeAllListeners();
+
+                    me.emit('end',
+                            err, result, prevIndx, prevVal, value);
+
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve(result);
+                    }
+                };
 
                 nextAction = () => {
                     try {
                         ++index;
                         if (index >= entries.length) {
-                            resolve(result);
+                            completed(null);
                             return;
                         }
 
@@ -340,11 +390,13 @@ export class Workflow extends events.EventEmitter {
 
                         let ctx: WorkflowActionContext = {
                             count: entries.length,
+                            events: actionEvents,
                             executions: ++executions,
                             finish: function() {
                                 index = entries.length - 1;
                                 return this;
                             },
+                            globalEvents: EVENTS,
                             globals: globals,
                             goto: function(newIndex) {
                                 --newIndex;
@@ -373,11 +425,16 @@ export class Workflow extends events.EventEmitter {
                             isLast: (entries.length - 1) === index,
                             permanentGlobals: GLOBALS,
                             permanentState: undefined,
+                            previousEndTime: prevEndTime,
                             previousIndex: prevIndx,
+                            previousStartTime: prevStartTime,
                             previousValue: prevVal,
                             result: result,
+                            startTime: startTime,
                             state: undefined,
+                            time: undefined,
                             value: value,
+                            workflowEvents: me,
                             workflowExecutions: me._executions,
                             workflowState: undefined,
                         };
@@ -413,6 +470,8 @@ export class Workflow extends events.EventEmitter {
                         });
 
                         let actionCompleted = function(err: any, nextValue?: any) {
+                            prevEndTime = new Date();
+
                             if (arguments.length > 1) {
                                 prevVal = nextValue;
                             }
@@ -438,6 +497,8 @@ export class Workflow extends events.EventEmitter {
                         me.emit('action.before',
                                 ctx);
 
+                        prevEndTime = undefined;
+                        prevStartTime = (<any>ctx).time = new Date();
                         if (e.action) {
                             let result = e.action
                                           .apply(e.thisArg,
@@ -468,10 +529,13 @@ export class Workflow extends events.EventEmitter {
                         me.emit('action.after',
                                 e);
 
-                        reject(e);
+                        completed(e);
                     }
                 };
 
+                me.emit('start');
+
+                startTime = new Date();
                 nextAction();  // start with first action
                                // (if available)
             }
@@ -503,7 +567,7 @@ export class Workflow extends events.EventEmitter {
      * 
      * @chainable
      */
-    public then(executor?: WorkflowExecutorType, thisArg?: any): Workflow {
+    public then(executor?: WorkflowExecutorType, thisArg?: any): this {
         if (arguments.length < 2) {
             thisArg = this;
         }
