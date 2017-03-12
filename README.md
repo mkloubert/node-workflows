@@ -1,7 +1,7 @@
 # node-workflows
 
-[![npm](https://img.shields.io/npm/v/node-simple-socket.svg)](https://www.npmjs.com/package/node-workflows)
-[![npm](https://img.shields.io/npm/dt/node-simple-socket.svg?label=npm%20downloads)](https://www.npmjs.com/package/node-workflows)
+[![npm](https://img.shields.io/npm/v/node-workflows.svg)](https://www.npmjs.com/package/node-workflows)
+[![npm](https://img.shields.io/npm/dt/node-workflows.svg?label=npm%20downloads)](https://www.npmjs.com/package/node-workflows)
 
 Simple and fast implementation of action-driven workflows for [Node.js](https://nodejs.org/) written in [TypeScript](https://www.typescriptlang.org/).
 
