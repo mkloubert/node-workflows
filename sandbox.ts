@@ -1,66 +1,64 @@
-
 import * as Workflows from './index';
 
-// WORKFLOW #1
-var workflow = Workflows.create();
-
-// ADD ACTIONS
-workflow.then(function(ctx) {
+var workflow = Workflows.create(function(ctx) {
     // ACTION #0
 
-    ctx.result = 'A result value';
-
-    ctx.events.on('myWorkflowEvent_0', function(val1: any, val2: any, val3: any) {
-        // will be invoked via 'ACTION #1'
-
-        // "TM+MK"
-        var v = val1 + val2 + val3;
-        if (v) {
-
-        }
-    });
-}).next(function(ctx) {  // <= alias for 'then()'
+    // skip 'ACTION #1'
+    ctx.skip(1);  // alternate: ctx.skip()
+}, function(ctx) {
     // ACTION #1
 
-    ctx.events.emit('myWorkflowEvent_0',
-                    'TM', '+', 'MK');
+    // goto 'ACTION #0' ...
+    ctx.gotoFirst();
 
-    ctx.events.once('myWorkflowEvent_1', function() {
-        // will be invoked via 'ACTION #2'
-        // BUT: only once!
-
-        ctx.value = 'MK';
-    });
-}).next(function(ctx) {
+    // ... but directly skip
+    // #1 and #2
+    ctx.skipWhile = function(ctxToCheck) {
+        return ctxToCheck.index < 3;
+    };
+}, function(ctx) {
     // ACTION #2
 
-    ctx.nextValue = 23979;
+    ctx.goto(1);  // goto 'ACTION #1'
+}, function(ctx) {
+    // ACTION #3
 
-    ctx.events.emit('myWorkflowEvent_1');  // invokes event in 'ACTION #1'
-    ctx.events.emit('myWorkflowEvent_1');  // DOES NOT invoke event in 'ACTION #1'
-                                           // because it has already been invoked
-});
+    ctx.gotoLast();
+}, function(ctx) {
+    // ACTION #4
 
-workflow.once('start', (workflowExecutionCount: number, initialValue: any, startTime: Date) => {
-    if (startTime) {
+    if (ctx) {
 
+    }
+}, function(ctx) {
+    // ACTION #5
+
+    if (ctx) {
+        
+    }
+}, function(ctx) {
+    // ACTION #6
+
+    if (ctx) {
+        
     }
 });
 
-workflow.once('end', (err: any, workflowExecutionCount: number, result: any, endTime: Date, value: any, previousValue: any, previousIndex: number) => {
-    if (err) {
+workflow.on('action.before', function(ctx: Workflows.WorkflowActionContext) {
+    console.log('ACTION #' + ctx.index);
 
-    }
+    ctx.result = ctx.index;
 });
 
-// START
-workflow.start('TM').then(function(result) {
+workflow.start().then(function(result) {
     // success
+
     if (result) {
 
     }
 }).catch(function(err) {
-    // ERROR
+    // ERROR!!!
+
     if (err) {
 
     }

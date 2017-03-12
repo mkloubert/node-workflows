@@ -26,6 +26,11 @@ import * as events from 'events';
 
 
 /**
+ * A predicate.
+ */
+export type Predicate<T> = (value: T) => Promise<boolean> | boolean;
+
+/**
  * A value storage.
  */
 export type ValueStorage = { [key: string]: any};
@@ -161,6 +166,18 @@ export interface WorkflowActionContext {
      * Gets or sets the result of the whole workflow.
      */
     result: any;
+    /**
+     * Skips a number of upcoming actions.
+     * 
+     * @param {number} cnt The number of actions to skip. Default: 1
+     * 
+     * @chainable
+     */
+    readonly skip: (cnt?: number) => this;
+    /**
+     * Skips the upcoming actions based on a predicate.
+     */
+    skipWhile: Predicate<WorkflowActionContext>;
     /**
      * Gets the start time of the workflow.
      */
@@ -375,6 +392,7 @@ export class Workflow extends events.EventEmitter {
                 let prevStartTime: Date;
                 let prevVal: any;
                 let result: any;
+                let skipWhile: Predicate<WorkflowActionContext>;
                 let startTime: Date;
                 let value = initialValue;
 
@@ -450,6 +468,23 @@ export class Workflow extends events.EventEmitter {
                             previousStartTime: prevStartTime,
                             previousValue: prevVal,
                             result: undefined,
+                            skip: function(cnt?) {
+                                if (arguments.length < 1) {
+                                    cnt = 1;
+                                }
+
+                                this.skipWhile = () => {
+                                    if (cnt > 0) {
+                                        --cnt;
+                                        return true;
+                                    }
+
+                                    return false;
+                                };
+
+                                return this;
+                            },
+                            skipWhile: undefined,
                             startTime: startTime,
                             state: undefined,
                             time: undefined,
@@ -494,6 +529,17 @@ export class Workflow extends events.EventEmitter {
                             },
                             set: function(newValue) {
                                 result = newValue;
+                            }
+                        });
+
+                        // ctx.skipWhile
+                        Object.defineProperty(ctx, 'skipWhile', {
+                            enumerable: true,
+                            get: function() {
+                                return skipWhile;
+                            },
+                            set: function(newValue) {
+                                skipWhile = newValue;
                             }
                         });
 
@@ -555,36 +601,77 @@ export class Workflow extends events.EventEmitter {
                             }
                         };
 
-                        me.emit('action.before',
-                                ctx);
+                        let invokeAction = () => {
+                            current = ctx;
+                            prevEndTime = undefined;
+                            prevStartTime = (<any>ctx).time = new Date();
 
-                        current = ctx;
-                        prevEndTime = undefined;
-                        prevStartTime = (<any>ctx).time = new Date();
-                        if (e.action) {
-                            let result = e.action
-                                          .apply(e.thisArg,
-                                                 [ ctx ]);
-                            if (result) {
-                                // promise => "async" execution
+                            me.emit('action.before',
+                                    ctx);
 
-                                result.then(function(nextValue?: any) {
-                                    if (arguments.length > 0) {
-                                        actionCompleted(null, nextValue);
-                                    }
-                                    else {
-                                        actionCompleted(null);
-                                    }
-                                }, (err: any) => {
-                                    actionCompleted(err);  // error
-                                });
+                            if (e.action) {
+                                let result = e.action
+                                              .apply(e.thisArg,
+                                                     [ ctx ]);
+                                if (result) {
+                                    // promise => "async" execution
+
+                                    result.then(function(nextValue?: any) {
+                                        if (arguments.length > 0) {
+                                            actionCompleted(null, nextValue);
+                                        }
+                                        else {
+                                            actionCompleted(null);
+                                        }
+                                    }, (err: any) => {
+                                        actionCompleted(err);  // error
+                                    });
+                                }
+                                else {
+                                    actionCompleted(null);  // no result
+                                }
                             }
                             else {
-                                actionCompleted(null);  // no result
+                                actionCompleted(null);  // no action
+                            }
+                        }
+
+                        let doSkip = false;
+                        let skipOrNot = () => {
+                            if (doSkip) {
+                                nextAction();
+                            }
+                            else {
+                                skipWhile = null;
+
+                                invokeAction();
+                            }
+                        };
+
+                        if (skipWhile) {
+                            let skipWhileResult = skipWhile(ctx);
+                            if (skipWhileResult) {
+                                if ('object' === typeof skipWhileResult) {
+                                    skipWhileResult.then((skip) => {
+                                        doSkip = skip;
+
+                                        skipOrNot();
+                                    }, (err) => {
+                                        completed(err);
+                                    });
+                                }
+                                else {
+                                    doSkip = skipWhileResult;
+
+                                    skipOrNot();
+                                }
+                            }
+                            else {
+                                skipOrNot();
                             }
                         }
                         else {
-                            actionCompleted(null);  // no action
+                            skipOrNot();
                         }
                     }
                     catch (e) {

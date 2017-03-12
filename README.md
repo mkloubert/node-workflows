@@ -146,6 +146,57 @@ newWorkflow.start('PZ').then(function() {
 });
 ```
 
+#### Jump / skip
+
+```javascript
+var workflow = Workflows.create(function(ctx) {
+    // ACTION #0
+    console.log('ACTION #0');
+
+    // skip 'ACTION #1'
+    ctx.skip(1);  // alternate: ctx.skip()
+}, function(ctx) {
+    // ACTION #1
+
+    // goto 'ACTION #0' ...
+    ctx.gotoFirst();
+
+    // ... but directly skip
+    // #1 and #2
+    ctx.skipWhile = function(ctxToCheck) {
+        return ctxToCheck.index < 3;
+    };
+}, function(ctx) {
+    // ACTION #2
+
+    ctx.goto(1);  // goto 'ACTION #1'
+}, function(ctx) {
+    // ACTION #3
+
+    ctx.gotoLast();
+}, function(ctx) {
+    // ACTION #4
+}, function(ctx) {
+    // ACTION #5
+}, function(ctx) {
+    // ACTION #6
+});
+
+workflow.on('action.before', function(ctx) {
+    console.log('ACTION #' + ctx.index);
+
+    ctx.result = ctx.index;
+});
+
+workflow.start().then(function(result) {
+    // success
+
+    // result == 6
+}).catch(function(err) {
+    // ERROR!!!
+});
+```
+
 #### States
 
 ```javascript

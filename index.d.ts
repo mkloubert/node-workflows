@@ -1,6 +1,10 @@
 /// <reference types="node" />
 import * as events from 'events';
 /**
+ * A predicate.
+ */
+export declare type Predicate<T> = (value: T) => Promise<boolean> | boolean;
+/**
  * A value storage.
  */
 export declare type ValueStorage = {
@@ -135,6 +139,18 @@ export interface WorkflowActionContext {
      * Gets or sets the result of the whole workflow.
      */
     result: any;
+    /**
+     * Skips a number of upcoming actions.
+     *
+     * @param {number} cnt The number of actions to skip. Default: 1
+     *
+     * @chainable
+     */
+    readonly skip: (cnt?: number) => this;
+    /**
+     * Skips the upcoming actions based on a predicate.
+     */
+    skipWhile: Predicate<WorkflowActionContext>;
     /**
      * Gets the start time of the workflow.
      */
