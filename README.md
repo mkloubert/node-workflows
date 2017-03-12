@@ -151,18 +151,18 @@ newWorkflow.start('PZ').then(function() {
 ```javascript
 var workflow = Workflows.create(function(ctx) {
     // ACTION #0
-    console.log('ACTION #0');
 
     // skip 'ACTION #1'
     ctx.skip(1);  // alternate: ctx.skip()
 }, function(ctx) {
     // ACTION #1
 
-    // goto 'ACTION #0' ...
+    // mark 'ACTION #0'
+    // as next ...
     ctx.gotoFirst();
 
     // ... but directly skip
-    // #1 and #2
+    // #0 to #2
     ctx.skipWhile = function(ctxToCheck) {
         return ctxToCheck.index < 3;
     };
@@ -173,13 +173,17 @@ var workflow = Workflows.create(function(ctx) {
 }, function(ctx) {
     // ACTION #3
 
-    ctx.gotoLast();
+    ctx.gotoLast();  // goto last action ('ACTION #6')
 }, function(ctx) {
     // ACTION #4
+
+    ctx.value = 'PZ';
 }, function(ctx) {
     // ACTION #5
 }, function(ctx) {
     // ACTION #6
+
+    // ctx.value == undefined (because we never reached 'ACTION #4')
 });
 
 workflow.on('action.before', function(ctx) {
