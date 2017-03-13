@@ -12,6 +12,7 @@
   },
   "keywords": [
     "actions",
+    "driven",
     "workflows",
     "asynchronus",
     "promise",
@@ -22,7 +23,8 @@
     "typescript",
     "DefinitelyTyped",
     "definition",
-    "files"
+    "files",
+    "promise"
   ],
   "author": "mkloubert",
   "license": "MIT",
