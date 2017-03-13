@@ -75,7 +75,9 @@ Workflows.start(function(ctx) {
 
         // ctx.previousValue == 'TM'
         // ctx.result == 23979
-        // ctx.value == 1781
+
+        // ctx.value == 19861222 (at first time)
+        // ctx.value == 1781 (at 2nd time)
 
         ctx.result = 5979;  // set a result value
                             // for the workflow
