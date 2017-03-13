@@ -470,6 +470,15 @@ export enum LogCategory {
 }
 
 /**
+ * The initial value for 'logLevel' property of 'Workflow' class.
+ */
+export let DefaultLogLevel = LogCategory.Notice;
+/**
+ * The initial value for 'state' property of 'Workflow' class.
+ */
+export let DefaultState: any;
+
+/**
  * A workflow.
  */
 export class Workflow extends events.EventEmitter {
@@ -492,11 +501,11 @@ export class Workflow extends events.EventEmitter {
     /**
      * Stores the minimal log level.
      */
-    protected _logLevel = LogCategory.Notice;
+    protected _logLevel = DefaultLogLevel;
     /**
      * Stores the current state value.
      */
-    protected _state: any;
+    protected _state = DefaultState;
 
     /**
      * Adds a logger.

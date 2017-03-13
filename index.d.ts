@@ -421,6 +421,14 @@ export declare enum LogCategory {
     Trace = 8,
 }
 /**
+ * The initial value for 'logLevel' property of 'Workflow' class.
+ */
+export declare let DefaultLogLevel: LogCategory;
+/**
+ * The initial value for 'state' property of 'Workflow' class.
+ */
+export declare let DefaultState: any;
+/**
  * A workflow.
  */
 export declare class Workflow extends events.EventEmitter {
