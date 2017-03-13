@@ -140,14 +140,14 @@ var workflow = Workflows.create(function(ctx) {
 
     ctx.value = 'PZ';
 
-    // if we would reache here
+    // if we would reach here
     // we could finish
     // the execution by calling...
     ctx.finish();
 }, function(ctx) {
     // ACTION #5
 
-    // if we would reache here
+    // if we would reach here
     // we could jump to a previous
     // action by calling...
     ctx.goBack();  // goto to 'ACTION #4'
@@ -190,8 +190,8 @@ var workflow = Workflows.create(function(ctx) {
 
     // the following messages will NOT logged
     // by default
-    // you can change the minimal log level
     // 
+    // you can change the minimal log level
     // by setting the
     // 'logLevel' property of 'workflow'
     ctx.info('informational messages', tag);
