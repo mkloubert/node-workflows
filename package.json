@@ -1,6 +1,6 @@
 {
   "name": "node-workflows",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Simple and fast implementation of action-driven workflows.",
   "main": "index.js",
   "scripts": {

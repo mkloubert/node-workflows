@@ -116,7 +116,7 @@ Workflows.start(function(ctx) {
 var workflow = Workflows.create(function(ctx) {
     // ACTION #0
 
-    // skip 'ACTION #1'
+    // skip one action ('ACTION #1')
     ctx.skip(1);  // alternate: ctx.skip()
 }, function(ctx) {
     // ACTION #1
