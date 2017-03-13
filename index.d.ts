@@ -425,6 +425,10 @@ export declare enum LogCategory {
  */
 export declare let DefaultLogLevel: LogCategory;
 /**
+ * List of default loggers.
+ */
+export declare let DefaultLoggers: LoggerType[];
+/**
  * The initial value for 'state' property of 'Workflow' class.
  */
 export declare let DefaultState: any;
@@ -456,6 +460,10 @@ export declare class Workflow extends events.EventEmitter {
      * Stores the current state value.
      */
     protected _state: any;
+    /**
+     * Initializes a new instance of that class.
+     */
+    constructor();
     /**
      * Adds a logger.
      *
