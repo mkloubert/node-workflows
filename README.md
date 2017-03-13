@@ -74,6 +74,7 @@ Workflows.start(function(ctx) {
         console.log('Entering ACTION #2...');
 
         // ctx.previousValue == 'TM'
+        // ctx.result == 23979
         // ctx.value == 1781
 
         ctx.result = 5979;  // set a result value
