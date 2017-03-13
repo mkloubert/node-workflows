@@ -26,6 +26,72 @@ import * as events from 'events';
 
 
 /**
+ * A logger.
+ */
+export interface Logger {
+    /**
+     * Logs a message.
+     */
+    log: LoggerAction;
+}
+
+/**
+ * A type for a logger.
+ */
+export type LoggerType = Logger | LoggerAction;
+
+/**
+ * A logger action.
+ * 
+ * @param {LoggerContext} ctx The context.
+ */
+export type LoggerAction = (ctx: LoggerContext) => void;
+
+/**
+ * A logger context.
+ */
+export interface LoggerContext {
+    /**
+     * Gets the underlying action.
+     */
+    readonly action: WorkflowActionContext;
+    /**
+     * Gets the category.
+     */
+    readonly category?: LogCategory;
+    /**
+     * Gets the message (value).
+     */
+    readonly message: any;
+    /**
+     * Gets the priority.
+     */
+    readonly priority?: number;
+    /**
+     * Gets the tag.
+     */
+    readonly tag?: string;
+    /**
+     * Gets the time.
+     */
+    readonly time: Date;
+}
+
+/**
+ * A logger entry.
+ */
+export interface LoggerEntry {
+    /**
+     * Gets the action.
+     */
+    readonly action: LoggerAction;
+    /**
+     * Gets the object / value that should be linked with the action.
+     */
+    readonly thisArg: any;
+}
+
+/**
  * A predicate.
  */
 export type Predicate<T> = (value: T) => Promise<boolean> | boolean;
@@ -63,13 +129,68 @@ export interface WorkflowActionEntry {
  */
 export interface WorkflowActionContext {
     /**
+     * Logs an alert message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly alert: (msg: any, tag?: string,
+                     priority?: number) => this;
+    /**
      * Gets the number of all workflow actions.
      */
     readonly count: number;
     /**
+     * Logs a critical message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly crit: (msg: any, tag?: string,
+                    priority?: number) => this;
+    /**
      * Gets the context of the current executing action.
      */
     readonly current: WorkflowActionContext;
+    /**
+     * Logs a debug message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly dbg: (msg: any, tag?: string,
+                   priority?: number) => this;
+    /**
+     * Logs an emergency message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly emerg: (msg: any, tag?: string,
+                     priority?: number) => this;
+    /**
+     * Logs an error message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly err: (msg: any, tag?: string,
+                   priority?: number) => this;
     /**
      * Gets the (global) events for all actions.
      */
@@ -131,6 +252,17 @@ export interface WorkflowActionContext {
      */
     readonly index: number;
     /**
+     * Logs an info message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly info: (msg: any, tag?: string,
+                    priority?: number) => this;
+    /**
      * Gets if the current action is NOT the first AND NOT the last one.
      */
     readonly isBetween: boolean;
@@ -143,9 +275,32 @@ export interface WorkflowActionContext {
      */
     readonly isLast: boolean;
     /**
+     * Logs a message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {LogCategory} [category] The category.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly log: (msg: any, tag?: string,
+                   category?: LogCategory, priority?: number) => this;
+    /**
      * Gets or sets the value for the next execution.
      */
     nextValue?: any;
+    /**
+     * Logs a notice.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly note: (msg: any, tag?: string,
+                    priority?: number) => this;
     /**
      * Access the value for permanent, global values.
      */
@@ -199,9 +354,31 @@ export interface WorkflowActionContext {
      */
     readonly time: Date;
     /**
+     * Logs a trace message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly trace: (msg: any, tag?: string,
+                     priority?: number) => this;
+    /**
      * Gets or sets a value for the whole execution chain.
      */
     value: any;
+    /**
+     * Logs a warning message.
+     * 
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     * 
+     * @chainable
+     */
+    readonly warn: (msg: any, tag?: string,
+                    priority?: number) => this;
     /**
      * Accesses the event emitter of the underlying workflow.
      */
@@ -247,6 +424,48 @@ export const EVENTS = new events.EventEmitter();
 export const GLOBALS: ValueStorage = {};
 
 /**
+ * List of log categories.
+ */
+export enum LogCategory {
+    /**
+     * Emergency: system is unusable
+     */
+    Emergency = 0,
+    /**
+     * Alert: action must be taken immediately
+     */
+    Alert = 1,
+    /**
+     * Critical: critical conditions
+     */
+    Critical = 2,
+    /**
+     * Error: error conditions
+     */
+    Error = 3,
+    /**
+     * Warning: warning conditions
+     */
+    Warning = 4,
+    /**
+     * Notice: normal but significant condition
+     */
+    Notice = 5,
+    /**
+     * Informational: informational messages
+     */
+    Info = 6,
+    /**
+     * Debug: debug messages
+     */
+    Debug = 7,
+    /**
+     * Trace: output the most you can
+     */
+    Trace = 8,
+}
+
+/**
  * A workflow.
  */
 export class Workflow extends events.EventEmitter {
@@ -263,15 +482,75 @@ export class Workflow extends events.EventEmitter {
      */
     protected _executions = 0;
     /**
+     * Stores the loggers.
+     */
+    protected _loggers: LoggerEntry[] = [];
+    /**
+     * Stores the minimal log level.
+     */
+    protected _logLevel = LogCategory.Notice;
+    /**
      * Stores the current state value.
      */
     protected _state: any;
+
+    /**
+     * Adds a logger.
+     * 
+     * @param {LoggerType} [logger] The logger to add. 
+     * @param {any} [thisArg] The optional object / value that should be linked with the underlying action.
+     *  
+     * @chainable
+     */
+    public addLogger(logger?: LoggerType, thisArg?: any): this {
+        if (arguments.length < 2) {
+            thisArg = this;
+        }
+
+        if (logger) {
+            let action: LoggerAction;
+            if ('function' === typeof logger) {
+                action = logger;
+            }
+            else {
+                let l: Logger = logger;
+
+                action = function(ctx) {
+                    l.log(ctx);
+                };
+            }
+
+            let newLoggerCount = this._loggers.push({
+                action: action,
+                thisArg: thisArg,
+            });
+
+            this.emit('logger.new',
+                      [ action, newLoggerCount ]);
+        }
+
+        return this;
+    }
 
     /**
      * Gets the number of workflow executions.
      */
     public get executions(): number {
         return this._executions;
+    }
+
+    /**
+     * Gets or sets the minimal log level.
+     */
+    public get logLevel(): LogCategory {
+        return this._logLevel;
+    }
+    public set logLevel(newValue: LogCategory) {
+        let oldValue = this._logLevel;
+        if (newValue !== oldValue) {
+            this.notifyPropertyChanged('logLevel',
+                                       oldValue, newValue);
+        }
     }
     
     /**
@@ -315,6 +594,7 @@ export class Workflow extends events.EventEmitter {
         this._actionStates = [];
         this._executions = 0;
 
+        this.resetLoggers();
         this.resetActionStates();
         this.resetState();
 
@@ -339,6 +619,21 @@ export class Workflow extends events.EventEmitter {
     }
 
     /**
+     * Resets the loggers.
+     * 
+     * @chainable
+     */
+    public resetLoggers(): this {
+        let oldLoggers = this._loggers.map(x => x);
+        this._loggers = [];
+
+        this.emit('reset.loggers',
+                  oldLoggers);
+        
+        return this;
+    }
+
+    /**
      * Resets the state value.
      * 
      * @chainable
@@ -349,6 +644,19 @@ export class Workflow extends events.EventEmitter {
 
         this.emit('reset.state',
                   oldValue);
+
+        return this;
+    }
+
+    /**
+     * Sets the minimal log level.
+     * 
+     * @param {LogCategory} newValue The new value.
+     * 
+     * @chainable
+     */
+    public setLogLevel(newValue: LogCategory): this {
+        this.logLevel = newValue;
 
         return this;
     }
@@ -433,9 +741,30 @@ export class Workflow extends events.EventEmitter {
                         let e = entries[index];
                         ++executions;
 
-                        let ctx: WorkflowActionContext = {
+                        let ctx: WorkflowActionContext
+                        ctx = {
+                            alert: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Alert, priority);
+                            },
                             count: entries.length,
+                            crit: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Critical, priority);
+                            },
                             current: undefined,
+                            dbg: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Debug, priority);
+                            },
+                            emerg: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Emergency, priority);
+                            },
+                            err: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Error, priority);
+                            },
                             events: actionEvents,
                             executions: undefined,
                             finish: function() {
@@ -473,9 +802,52 @@ export class Workflow extends events.EventEmitter {
                                 return this;
                             },
                             index: index,
+                            info: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Info, priority);
+                            },
                             isBetween: index > 0 && (index < (entries.length - 1)),
                             isFirst: 0 === index,
                             isLast: (entries.length - 1) === index,
+                            log: function(msg, tag?, category?, priority?) {
+                                if (arguments.length < 3) {
+                                    category = LogCategory.Info;
+                                }
+
+                                if (category <= me.logLevel) {
+                                    try {
+                                        let logTime = new Date();
+
+                                        me._loggers.map(x => x).forEach(le => {
+                                            try {
+                                                let loggerCtx: LoggerContext = {
+                                                    action: ctx,
+                                                    category: category,
+                                                    message: msg,
+                                                    priority: priority,
+                                                    tag: tag,
+                                                    time: logTime,
+                                                };
+
+                                                le.action.apply(le.thisArg,
+                                                                [ loggerCtx ]);
+                                            }
+                                            catch (e) {
+                                                console.log('[ERROR.node-workflows.2] ' + e);
+                                            }
+                                        });
+                                    }
+                                    catch (e) {
+                                        console.log('[ERROR.node-workflows.1] ' + e);
+                                    }
+                                }
+                                
+                                return this;
+                            },
+                            note: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Notice, priority);
+                            },
                             permanentGlobals: GLOBALS,
                             permanentState: undefined,
                             previousEndTime: prevEndTime,
@@ -503,7 +875,15 @@ export class Workflow extends events.EventEmitter {
                             startTime: startTime,
                             state: undefined,
                             time: undefined,
+                            trace: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Trace, priority);
+                            },
                             value: undefined,
+                            warn: function(msg, tag?, priority?) {
+                                return this.log(msg, tag,
+                                                LogCategory.Warning, priority);
+                            },
                             workflowEvents: me,
                             workflowExecutions: me._executions,
                             workflowState: undefined,

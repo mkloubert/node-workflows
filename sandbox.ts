@@ -1,41 +1,44 @@
 import * as Workflows from './index';
 
-var workflow = Workflows.create();
-
-// custom events for the execution
-workflow.then(function(ctx) {
+var workflow = Workflows.create(function(ctx) {
     // ACTION #0
 
-    ctx.skip();
-}).next(function(ctx) {  // <= alias for 'then()'
-    // ACTION #1
-    
-    ctx.skip(2);
-}).next(function(ctx) {
-    // ACTION #2
+    var tag = 'ACTION #0';
 
-    ctx.goBack();
-}).next(function(ctx) {
-    // ACTION #3
-    
-    if (ctx) {
-        
-    }
-}).next(function(ctx) {
-    // ACTION #4
+    ctx.emerg('system is unusable', tag);
+    ctx.alert('an action must be taken immediately', tag);
+    ctx.crit('critical conditions', tag);
+    ctx.err('error conditions', tag);
+    ctx.warn('warning conditions', tag);
+    ctx.note('normal but significant condition', tag);
 
-    if (ctx) {
-        
+    // the following messages will NOT logged
+    // by default
+    // 
+    // you can change the minimal log level
+    // by setting the
+    // 'logLevel' property of 'workflow'
+    ctx.info('informational messages', tag);
+    ctx.dbg('debug messages', tag);
+    ctx.trace('output anything', tag);
+});
+
+// add loggers by function ...
+workflow.addLogger(function(ctx) {
+    // log level / category is stored in
+    // ctx.category
+
+    console.log('[' + ctx.tag + ' :: ' + ctx.time + '] ' + ctx.message);
+});
+// ... and by object
+workflow.addLogger({
+    log: function(ctx) {
+        if (ctx) {
+
+        }
     }
 });
 
-workflow.on('end', function() {
-    if (arguments) {
-        
-    }
-});
-
-// START
 workflow.start().then(function(result) {
     // success
 
@@ -43,9 +46,9 @@ workflow.start().then(function(result) {
 
     }
 }).catch(function(err) {
-    // ERROR
+    // ERROR!!!
 
     if (err) {
-        
+
     }
 });

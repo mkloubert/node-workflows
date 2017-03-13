@@ -1,6 +1,67 @@
 /// <reference types="node" />
 import * as events from 'events';
 /**
+ * A logger.
+ */
+export interface Logger {
+    /**
+     * Logs a message.
+     */
+    log: LoggerAction;
+}
+/**
+ * A type for a logger.
+ */
+export declare type LoggerType = Logger | LoggerAction;
+/**
+ * A logger action.
+ *
+ * @param {LoggerContext} ctx The context.
+ */
+export declare type LoggerAction = (ctx: LoggerContext) => void;
+/**
+ * A logger context.
+ */
+export interface LoggerContext {
+    /**
+     * Gets the underlying action.
+     */
+    readonly action: WorkflowActionContext;
+    /**
+     * Gets the category.
+     */
+    readonly category?: LogCategory;
+    /**
+     * Gets the message (value).
+     */
+    readonly message: any;
+    /**
+     * Gets the priority.
+     */
+    readonly priority?: number;
+    /**
+     * Gets the tag.
+     */
+    readonly tag?: string;
+    /**
+     * Gets the time.
+     */
+    readonly time: Date;
+}
+/**
+ * A logger entry.
+ */
+export interface LoggerEntry {
+    /**
+     * Gets the action.
+     */
+    readonly action: LoggerAction;
+    /**
+     * Gets the object / value that should be linked with the action.
+     */
+    readonly thisArg: any;
+}
+/**
  * A predicate.
  */
 export declare type Predicate<T> = (value: T) => Promise<boolean> | boolean;
@@ -36,13 +97,63 @@ export interface WorkflowActionEntry {
  */
 export interface WorkflowActionContext {
     /**
+     * Logs an alert message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly alert: (msg: any, tag?: string, priority?: number) => this;
+    /**
      * Gets the number of all workflow actions.
      */
     readonly count: number;
     /**
+     * Logs a critical message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly crit: (msg: any, tag?: string, priority?: number) => this;
+    /**
      * Gets the context of the current executing action.
      */
     readonly current: WorkflowActionContext;
+    /**
+     * Logs a debug message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly dbg: (msg: any, tag?: string, priority?: number) => this;
+    /**
+     * Logs an emergency message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly emerg: (msg: any, tag?: string, priority?: number) => this;
+    /**
+     * Logs an error message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly err: (msg: any, tag?: string, priority?: number) => this;
     /**
      * Gets the (global) events for all actions.
      */
@@ -104,6 +215,16 @@ export interface WorkflowActionContext {
      */
     readonly index: number;
     /**
+     * Logs an info message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly info: (msg: any, tag?: string, priority?: number) => this;
+    /**
      * Gets if the current action is NOT the first AND NOT the last one.
      */
     readonly isBetween: boolean;
@@ -116,9 +237,30 @@ export interface WorkflowActionContext {
      */
     readonly isLast: boolean;
     /**
+     * Logs a message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {LogCategory} [category] The category.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly log: (msg: any, tag?: string, category?: LogCategory, priority?: number) => this;
+    /**
      * Gets or sets the value for the next execution.
      */
     nextValue?: any;
+    /**
+     * Logs a notice.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly note: (msg: any, tag?: string, priority?: number) => this;
     /**
      * Access the value for permanent, global values.
      */
@@ -172,9 +314,29 @@ export interface WorkflowActionContext {
      */
     readonly time: Date;
     /**
+     * Logs a trace message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly trace: (msg: any, tag?: string, priority?: number) => this;
+    /**
      * Gets or sets a value for the whole execution chain.
      */
     value: any;
+    /**
+     * Logs a warning message.
+     *
+     * @param {any} msg The message (value).
+     * @param {string} [tag] The tag.
+     * @param {number} [priority] The priority.
+     *
+     * @chainable
+     */
+    readonly warn: (msg: any, tag?: string, priority?: number) => this;
     /**
      * Accesses the event emitter of the underlying workflow.
      */
@@ -214,6 +376,47 @@ export declare const EVENTS: events.EventEmitter;
  */
 export declare const GLOBALS: ValueStorage;
 /**
+ * List of log categories.
+ */
+export declare enum LogCategory {
+    /**
+     * Emergency: system is unusable
+     */
+    Emergency = 0,
+    /**
+     * Alert: action must be taken immediately
+     */
+    Alert = 1,
+    /**
+     * Critical: critical conditions
+     */
+    Critical = 2,
+    /**
+     * Error: error conditions
+     */
+    Error = 3,
+    /**
+     * Warning: warning conditions
+     */
+    Warning = 4,
+    /**
+     * Notice: normal but significant condition
+     */
+    Notice = 5,
+    /**
+     * Informational: informational messages
+     */
+    Info = 6,
+    /**
+     * Debug: debug messages
+     */
+    Debug = 7,
+    /**
+     * Trace: output the most you can
+     */
+    Trace = 8,
+}
+/**
  * A workflow.
  */
 export declare class Workflow extends events.EventEmitter {
@@ -230,13 +433,34 @@ export declare class Workflow extends events.EventEmitter {
      */
     protected _executions: number;
     /**
+     * Stores the loggers.
+     */
+    protected _loggers: LoggerEntry[];
+    /**
+     * Stores the minimal log level.
+     */
+    protected _logLevel: LogCategory;
+    /**
      * Stores the current state value.
      */
     protected _state: any;
     /**
+     * Adds a logger.
+     *
+     * @param {LoggerType} [logger] The logger to add.
+     * @param {any} [thisArg] The optional object / value that should be linked with the underlying action.
+     *
+     * @chainable
+     */
+    addLogger(logger?: LoggerType, thisArg?: any): this;
+    /**
      * Gets the number of workflow executions.
      */
     readonly executions: number;
+    /**
+     * Gets or sets the minimal log level.
+     */
+    logLevel: LogCategory;
     /**
      * Alias for 'then'.
      */
@@ -264,11 +488,25 @@ export declare class Workflow extends events.EventEmitter {
      */
     resetActionStates(): this;
     /**
+     * Resets the loggers.
+     *
+     * @chainable
+     */
+    resetLoggers(): this;
+    /**
      * Resets the state value.
      *
      * @chainable
      */
     resetState(): this;
+    /**
+     * Sets the minimal log level.
+     *
+     * @param {LogCategory} newValue The new value.
+     *
+     * @chainable
+     */
+    setLogLevel(newValue: LogCategory): this;
     /**
      * Sets the state value.
      *

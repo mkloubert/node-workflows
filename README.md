@@ -173,6 +173,53 @@ workflow.start().then(function(result) {
 });
 ```
 
+#### Logging
+
+```javascript
+var workflow = Workflows.create(function(ctx) {
+    // ACTION #0
+
+    var tag = 'ACTION #1';
+
+    ctx.emerg('system is unusable', tag);
+    ctx.alert('an action must be taken immediately', tag);
+    ctx.crit('critical conditions', tag);
+    ctx.err('error conditions', tag);
+    ctx.warn('warning conditions', tag);
+    ctx.note('normal but significant condition', tag);
+
+    // the following messages will NOT logged
+    // by default
+    // you can change the minimal log level
+    // 
+    // by setting the
+    // 'logLevel' property of 'workflow'
+    ctx.info('informational messages', tag);
+    ctx.dbg('debug messages', tag);
+    ctx.trace('output anything', tag);
+});
+
+// add loggers by function ...
+workflow.addLogger(function(ctx) {
+    // log level / category is stored in
+    // ctx.category
+
+    console.log('[' + ctx.tag + ' :: ' + ctx.time + '] ' + ctx.message);
+});
+// ... and by object
+workflow.addLogger({
+    log: function(ctx) {
+        // your code
+    }
+});
+
+workflow.start().then(function(result) {
+    // success
+}).catch(function(err) {
+    // ERROR!!!
+});
+```
+
 #### Share values
 
 ```javascript
@@ -271,6 +318,9 @@ workflow.on('action.skip', function(ctx) {
 workflow.on('end', function(err, workflowExecutionCount, result, endTime, value, previousValue, previousIndex) {
     // workflow has ended
 });
+workflow.on('logger.new', function(action, newLoggerCount) {
+    // new logger added
+});
 workflow.on('reset', function() {
     // whole workflow has been resetted
 });
@@ -280,6 +330,9 @@ workflow.on('reset.actions', function(oldEntries) {
 workflow.on('reset.actionstates', function(oldStates) {
     // states of workflow actions have
     // been resetted
+});
+workflow.on('reset.loggers', function(oldLoggerActions) {
+    // loggers have been resetted
 });
 workflow.on('reset.state', function(oldValue) {
     // state value of workflow has been resetted
