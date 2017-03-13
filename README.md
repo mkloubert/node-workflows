@@ -133,7 +133,14 @@ var workflow = Workflows.create(function(ctx) {
 }, function(ctx) {
     // ACTION #2
 
-    ctx.goto(1);  // goto 'ACTION #1'
+    if (!ctx.value) {
+        ctx.value = true;
+
+        ctx.repeat();
+    }
+    else {
+        ctx.goto(1);  // goto 'ACTION #1'
+    }
 }, function(ctx) {
     // ACTION #3
 

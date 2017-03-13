@@ -3,40 +3,65 @@ import * as Workflows from './index';
 var workflow = Workflows.create(function(ctx) {
     // ACTION #0
 
-    var tag = 'ACTION #0';
+    // skip one action ('ACTION #1')
+    ctx.skip(1);  // alternate: ctx.skip()
+}, function(ctx) {
+    // ACTION #1
 
-    ctx.emerg('system is unusable', tag);
-    ctx.alert('an action must be taken immediately', tag);
-    ctx.crit('critical conditions', tag);
-    ctx.err('error conditions', tag);
-    ctx.warn('warning conditions', tag);
-    ctx.note('normal but significant condition', tag);
+    // mark 'ACTION #0'
+    // as next ...
+    ctx.gotoFirst();
 
-    // the following messages will NOT logged
-    // by default
-    // 
-    // you can change the minimal log level
-    // by setting the
-    // 'logLevel' property of 'workflow'
-    ctx.info('informational messages', tag);
-    ctx.dbg('debug messages', tag);
-    ctx.trace('output anything', tag);
-});
+    // ... but directly skip
+    // #0 to #2
+    ctx.skipWhile = function(ctxToCheck) {
+        return ctxToCheck.index < 3;
+    };
+}, function(ctx) {
+    // ACTION #2
 
-// add loggers by function ...
-workflow.addLogger(function(ctx) {
-    // log level / category is stored in
-    // ctx.category
+    if (!ctx.value) {
+        ctx.value = true;
 
-    console.log('[' + ctx.tag + ' :: ' + ctx.time + '] ' + ctx.message);
-});
-// ... and by object
-workflow.addLogger({
-    log: function(ctx) {
-        if (ctx) {
-
-        }
+        ctx.repeat();
     }
+    else {
+        ctx.goto(1);  // goto 'ACTION #1'
+    }
+}, function(ctx) {
+    // ACTION #3
+
+    ctx.gotoLast();  // goto last action ('ACTION #6')
+}, function(ctx) {
+    // ACTION #4
+
+    ctx.value = 'PZ';
+
+    // if we would reach here
+    // we could finish
+    // the execution by calling...
+    ctx.finish();
+}, function(ctx) {
+    // ACTION #5
+
+    // if we would reach here
+    // we could jump to a previous
+    // action by calling...
+    ctx.goBack();  // goto to 'ACTION #4'
+    ctx.goBack(2);  // goto to 'ACTION #3'
+}, function(ctx) {
+    // ACTION #6
+
+    // ctx.value == undefined (because we never reached 'ACTION #4')
+    if (ctx) {
+
+    }
+});
+
+workflow.on('action.before', function(ctx: Workflows.WorkflowActionContext) {
+    console.log('ACTION #' + ctx.index);
+
+    ctx.result = ctx.index;
 });
 
 workflow.start().then(function(result) {
@@ -49,6 +74,6 @@ workflow.start().then(function(result) {
     // ERROR!!!
 
     if (err) {
-
+        
     }
 });

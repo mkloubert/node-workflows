@@ -326,6 +326,10 @@ export interface WorkflowActionContext {
      */
     readonly previousValue?: any;
     /**
+     * Marks the action to be repeated next time.
+     */
+    repeat: () => this;
+    /**
      * Gets or sets the result of the whole workflow.
      */
     result: any;
@@ -782,7 +786,7 @@ export class Workflow extends events.EventEmitter {
                             },
                             goto: function(newIndex) {
                                 --newIndex;
-                                if (newIndex < 0 || newIndex >= entries.length) {
+                                if (newIndex < -1 || newIndex >= (entries.length - 1)) {
                                     throw new Error('Index out of range!');
                                 }
 
@@ -854,6 +858,9 @@ export class Workflow extends events.EventEmitter {
                             previousIndex: prevIndx,
                             previousStartTime: prevStartTime,
                             previousValue: prevVal,
+                            repeat: function() {
+                                return this.goto(this.index);
+                            },
                             result: undefined,
                             skip: function(cnt?) {
                                 if (arguments.length < 1) {
