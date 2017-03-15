@@ -941,10 +941,10 @@ export class Workflow extends events.EventEmitter {
                         Object.defineProperty(ctx, 'permanentState', {
                             enumerable: true,
                             get: function() {
-                                return me._actionStates[index];
+                                return me._actionStates[ctx.index];
                             },
                             set: function(newValue) {
-                                me._actionStates[index] = newValue;
+                                me._actionStates[ctx.index] = newValue;
                             }
                         });
 
@@ -974,10 +974,10 @@ export class Workflow extends events.EventEmitter {
                         Object.defineProperty(ctx, 'state', {
                             enumerable: true,
                             get: function() {
-                                return actionStates[index];
+                                return actionStates[ctx.index];
                             },
                             set: function(newValue) {
-                                actionStates[index] = newValue;
+                                actionStates[ctx.index] = newValue;
                             }
                         });
 
