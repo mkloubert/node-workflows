@@ -1021,7 +1021,7 @@ export class Workflow extends events.EventEmitter {
                                     err, ctx);
                             
                             if (err) {
-                                reject(err);
+                                completed(err);
                             }
                             else {
                                 nextAction();
